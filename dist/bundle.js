@@ -1,8 +1,35 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('backbone')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'backbone'], factory) :
-	(factory((global.ThresholdEditor = {}),global.Backbone));
-}(this, (function (exports,backbone) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('backbone')) :
+	typeof define === 'function' && define.amd ? define(['backbone'], factory) :
+	(global.ThresholdEditor = factory(global.Backbone));
+}(this, (function (backbone) { 'use strict';
+
+function __$$styleInject(css, ref) {
+  if ( ref === void 0 ) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') { return; }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
 
 var nativeIsArray = Array.isArray;
 var toString = Object.prototype.toString;
@@ -2105,55 +2132,97 @@ var ViewModel = backbone.View.extend({
   tree: null,
   // real dom
   treeNode: null,
-  // virtual render
-  tpl() {},
-  initializeRender() {
+  initialize: function initialize() {
+    this.render();
+  },
+
+  // virtual render,
+  tpl: function tpl() {},
+  initializeRender: function initializeRender() {
     this.tree = this.tpl(this);
     this.treeNode = createElement_1$2(this.tree);
     return this.updateRender;
   },
-  updateRender() {
-    let newTree = this.tpl(this);
+  updateRender: function updateRender() {
+    var newTree = this.tpl(this);
     var patches = diff_1$2(this.tree, newTree);
     this.treeNode = patch_1$2(this.treeNode, patches);
     this.tree = newTree;
   },
-  triggerRender() {
+  triggerRender: function triggerRender() {
     this.triggerRender = this.initializeRender();
-    this.$el.html(this.treeNode);
+    this.$el.replaceWith(this.treeNode);
   },
-  render() {
+  render: function render() {
     this.triggerRender();
   }
 });
 
-const DataModel = backbone.Model.extend({
+function Component (Constructor) {
+  return function () {
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    return new (Function.prototype.bind.apply(Constructor, [null].concat(args)))().tpl();
+  };
+}
+
+var DataModel = backbone.Model.extend({
   defaults: {
     text: "Hello, World!"
   }
 });
 
-const HomeView = ViewModel.extend({
-  el: "body",
-  initialize: function() {
-    this.model.on("change", this.render, this);
+var DataModels = backbone.Collection.extend({
+  model: DataModel
+});
+
+var ListView = Component(ViewModel.extend({
+  tpl: function tpl() {
+    var _this = this;
+
+    return h_1('ul', null, [this.collection.map(function (model, i) {
+      return h_1('li', { onclick: function onclick() {
+          return _this.toRemove(model);
+        } }, [model.get("text")]);
+    })]);
+  },
+  toRemove: function toRemove(model) {
+    this.collection.remove(model);
+  }
+}));
+
+var i = 0;
+
+var HomeView = ViewModel.extend({
+  initialize: function initialize() {
+    this.model ? this.listenTo(this.model, "change", this.render) : null;
+    this.listenTo(this.collection, "add remove change", this.render);
     this.render();
   },
-  tpl() {
-    return (
-      h_1('div', {className: "Text", onclick: () => this.toClick()}, [
-        h_1('span', null, [this.model.get("text")])
-      ])
-    );
+  tpl: function tpl() {
+    var _this2 = this;
+
+    return h_1('div', { className: "threshold-editor" }, [h_1('span', { onclick: function onclick() {
+        return _this2.toClick();
+      } }, [this.model.get("text")]), ListView(Object.assign({}, { collection: this.collection }))]);
   },
-  toClick() {
+  toClick: function toClick() {
     this.model.set("text", "hellow-----" + Math.random() * 1e3);
+    this.collection.add({ text: i++ });
   }
 });
 
-exports.DataModel = DataModel;
-exports.HomeView = HomeView;
+var ThresholdEditor = Object.freeze({
+	DataModel: DataModel,
+	DataModels: DataModels,
+	HomeView: HomeView
+});
 
-Object.defineProperty(exports, '__esModule', { value: true });
+var css = ".threshold-editor {\n  padding-right: 20px;\n}\n.threshold-editor input,\n.threshold-editor select {\n  outline: none;\n}\n.threshold-editor ul,\n.threshold-editor li,\n.threshold-editor p,\n.threshold-editor h1,\n.threshold-editor div {\n  font-size: 12px;\n  padding: 0;\n  margin: 0px;\n  box-sizing: border-box;\n}\n.threshold-editor .threshold-editor__row [class*=threshold-editor__col-] {\n  float: left;\n  min-height: 21px;\n}\n.threshold-editor .threshold-editor__row [class*=threshold-editor__col-].has-vertical-line {\n  border-right: 1px dotted #c3c2c2;\n}\n.threshold-editor .threshold-editor__row:before,\n.threshold-editor .threshold-editor__row:after {\n  content: '';\n  display: table;\n}\n.threshold-editor .threshold-editor__row:after {\n  clear: both;\n}\n.threshold-editor .threshold-editor__col-1 {\n  width: 10%;\n}\n.threshold-editor .threshold-editor__col-2 {\n  width: 20%;\n}\n.threshold-editor .threshold-editor__col-3 {\n  width: 30%;\n}\n.threshold-editor .threshold-editor__col-4 {\n  width: 40%;\n}\n.threshold-editor .threshold-editor__col-5 {\n  width: 50%;\n}\n.threshold-editor .threshold-editor__col-6 {\n  width: 60%;\n}\n.threshold-editor .threshold-editor__col-7 {\n  width: 70%;\n}\n.threshold-editor .threshold-editor__col-8 {\n  width: 80%;\n}\n.threshold-editor .threshold-editor__col-9 {\n  width: 90%;\n}\n.threshold-editor .threshold-editor__col-10 {\n  width: 100%;\n}\n.threshold-editor .threshold-editor__header {\n  line-height: 21px;\n}\n.threshold-editor .threshold-editor__header>div {\n  padding-left: 11px;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  overflow: hidden;\n}\n.threshold-editor .threshold-editor__button {\n  height: 24px;\n  line-height: 22px;\n  border: 1px solid #ccc;\n  background: #daeff6;\n  text-indent: 12px;\n  display: block;\n  text-decoration: none;\n  color: #aaa;\n}\n.threshold-editor .threshold-editor__button:hover {\n  color: #555;\n}\n.threshold-editor .threshold-editor__list {\n  line-height: 30px;\n}\n.threshold-editor .threshold-editor__list>div {\n  padding: 0 11px;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  overflow: hidden;\n}\n.threshold-editor .threshold-editor__list b {\n  color: #777;\n}\n.threshold-editor .threshold-editor__list select {\n  width: 100%;\n  border: none;\n  border-bottom: 1px dotted #ccc;\n}\n/*# sourceMappingURL=src/style/index.css.map */\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInNyYy9zdHlsZS9pbmRleC5zdHlsIiwiaW5kZXguc3R5bCIsInNyYy9zdHlsZS92YXJzLnN0eWwiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBRUE7RUFDRSxvQkFBQTtDQ0REO0FER0M7O0VBQ0UsY0FBQTtDQ0FIO0FER0M7Ozs7O0VBQ0UsZ0JBQUE7RUFDQSxXQUFBO0VBQ0EsWUFBQTtFQUNBLHVCQUFBO0NDR0g7QURDRztFQUNFLFlBQUE7RUFDQSxpQkFBQTtDQ0NMO0FEQ0s7RUFDRSxpQ0FBQTtDQ0NQO0FER0c7O0VBQ0UsWUFBQTtFQUNBLGVBQUE7Q0NBTDtBREdHO0VBQ0UsWUFBQTtDQ0RMO0FETUc7RUFDRSxXQUFBO0NDSkw7QURHRztFQUNFLFdBQUE7Q0NETDtBREFHO0VBQ0UsV0FBQTtDQ0VMO0FESEc7RUFDRSxXQUFBO0NDS0w7QURORztFQUNFLFdBQUE7Q0NRTDtBRFRHO0VBQ0UsV0FBQTtDQ1dMO0FEWkc7RUFDRSxXQUFBO0NDY0w7QURmRztFQUNFLFdBQUE7Q0NpQkw7QURsQkc7RUFDRSxXQUFBO0NDb0JMO0FEckJHO0VBQ0UsWUFBQTtDQ3VCTDtBRG5CQztFQUNFLGtCQUFBO0NDcUJIO0FEbkJHO0VBQ0UsbUJBQUE7RUUzQ0osd0JBQUE7RUFDQSxvQkFBQTtFQUNBLGlCQUFBO0NEaUVEO0FEbkJDO0VBQ0UsYUFBQTtFQUNBLGtCQUFBO0VBQ0EsdUJBQUE7RUFDQSxvQkFBQTtFQUNBLGtCQUFBO0VBQ0EsZUFBQTtFQUNBLHNCQUFBO0VBQ0EsWUFBQTtDQ3FCSDtBRG5CRztFQUNFLFlBQUE7Q0NxQkw7QURqQkM7RUFDRSxrQkFBQTtDQ21CSDtBRGpCRztFQUNFLGdCQUFBO0VFbkVKLHdCQUFBO0VBQ0Esb0JBQUE7RUFDQSxpQkFBQTtDRHVGRDtBRGxCRztFQUNFLFlBQUE7Q0NvQkw7QURqQkc7RUFDRSxZQUFBO0VBQ0EsYUFBQTtFQUNBLCtCQUFBO0NDbUJMO0FBQ0QsK0NBQStDIiwiZmlsZSI6ImluZGV4LnN0eWwifQ== */";
+__$$styleInject(css);
+
+return ThresholdEditor;
 
 })));

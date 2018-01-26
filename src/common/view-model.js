@@ -4,12 +4,16 @@ import createElement from "virtual-dom/create-element";
 import diff from "virtual-dom/diff";
 import patch from "virtual-dom/patch";
 
-export default View.extend({
+
+let ViewModel = View.extend({
   // virtual tree
   tree: null,
   // real dom
   treeNode: null,
-  // virtual render
+  initialize() {
+    this.render();
+  },
+  // virtual render,
   tpl() {},
   initializeRender() {
     this.tree = this.tpl(this);
@@ -24,9 +28,11 @@ export default View.extend({
   },
   triggerRender() {
     this.triggerRender = this.initializeRender();
-    this.$el.html(this.treeNode);
+    this.$el.replaceWith(this.treeNode);
   },
   render() {
     this.triggerRender();
   }
 });
+
+export default ViewModel;
