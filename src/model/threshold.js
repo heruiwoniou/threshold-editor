@@ -1,6 +1,6 @@
 import { Model } from "backbone";
-
-const regex = /^(\d*)\s*(\d*)\s*(\d*)$/;
+import _ from "underscore";
+const regex = /^([\d\.]*)\s*([\d\.]*)\s*([\d\.]*)$/;
 const rules = /\((\d{2}:\d{2}\s*\d{2}:\d{2})\)\s*([><=])\s*(\d*\s*\d*\s*\d*)|(\s*)([><=])\s*(\d*\s*\d*\s*\d*)/;
 export const analysis = function(str) {
   let mathes = rules.exec(str);
@@ -31,8 +31,41 @@ const Threshold = Model.extend({
     return this.get("to").split(":")[0];
   },
   getThreshold(l = 3) {
-    let res = /^(\d*)\s*(\d*)\s*(\d*)$/.exec(this.get("threshold"));
+    let res = regex.exec(this.get("threshold"));
     return res.slice(1, 1 + l);
+  },
+  setFirst(val) {
+    let res = regex.exec(this.get("threshold"));
+    res = res.slice(1, 4);
+    _.each(res, (o, i) => {
+      if (i < 1 && o === "") {
+        res[i] = val;
+      }
+    });
+    res[0] = val;
+    this.set("threshold", res.join(" "));
+  },
+  setSecond(val) {
+    let res = regex.exec(this.get("threshold"));
+    res = res.slice(1, 4);
+    _.each(res, (o, i) => {
+      if (i < 1 && o === "") {
+        res[i] = val;
+      }
+    });
+    res[1] = val;
+    this.set("threshold", res.join(" "));
+  },
+  setThree(val) {
+    let res = regex.exec(this.get("threshold"));
+    res = res.slice(1, 4);
+    _.each(res, (o, i) => {
+      if (i < 2 && o === "") {
+        res[i] = val;
+      }
+    });
+    res[2] = val;
+    this.set("threshold", res.join(" "));
   }
 });
 

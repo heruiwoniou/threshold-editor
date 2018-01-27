@@ -2204,6 +2204,11 @@ var EditorRowConstructor = ViewModel.extend({
     var _this = this;
 
     var isallday = this.model.getFrom() === "" && this.model.getTo() === "";
+    var thresholds = this.model.getThreshold();
+    var l = _.filter(thresholds, function (o) {
+      return !!o;
+    }).length;
+    var inputList = state.selected ? thresholds.slice(0, 3) : thresholds.slice(0, l == 0 ? 1 : l);
     return h_1('div', {
       className: state.selected ? "threshold-editor__single-rules threshold-editor__single-rules--active" : "threshold-editor__single-rules"
 
@@ -2252,8 +2257,15 @@ var EditorRowConstructor = ViewModel.extend({
         value: value,
         selected: value === _this.model.get("operator")
       }, [text]);
-    })])]), h_1('div', { className: "threshold-editor__col-3 " }, [this.model.getThreshold(state.selected ? 3 : 1).map(function (o, i) {
-      return h_1('div', { className: "threshold-editor__threshold-container" }, [h_1('div', { className: "threshold-editor__threshold__value" }, [h_1('input', { type: "text" })]), h_1('div', { className: "threshold-editor__threshold__tip" }, [h_1('span', { className: tips[i].className }, [tips[i].text, h_1('i')])])]);
+    })])]), h_1('div', { className: "threshold-editor__col-3 " }, [inputList.map(function (o, i) {
+      return h_1('div', { className: "threshold-editor__threshold-container" }, [h_1('div', { className: "threshold-editor__threshold__value" }, [h_1('input', {
+        type: "number",
+        value: inputList[i],
+        onchange: function onchange(_ref3) {
+          var value = _ref3.target.value;
+          return parentState.thresholdChange(_this.model, i, value);
+        }
+      })]), h_1('div', { className: "threshold-editor__threshold__tip" }, [h_1('span', { className: tips[i].className }, [tips[i].text, h_1('i')])])]);
     })])])]), state.selected ? h_1('a', {
       href: "javascript:;",
       className: "threshold-editor__delete",
@@ -2265,6 +2277,7 @@ var EditorRowConstructor = ViewModel.extend({
 
 var EditorRow = Component(EditorRowConstructor);
 
+var regex = /^([\d\.]*)\s*([\d\.]*)\s*([\d\.]*)$/;
 var rules = /\((\d{2}:\d{2}\s*\d{2}:\d{2})\)\s*([><=])\s*(\d*\s*\d*\s*\d*)|(\s*)([><=])\s*(\d*\s*\d*\s*\d*)/;
 var analysis = function analysis(str) {
   var mathes = rules.exec(str);
@@ -2297,8 +2310,41 @@ var Threshold = backbone.Model.extend({
   getThreshold: function getThreshold() {
     var l = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 3;
 
-    var res = /^(\d*)\s*(\d*)\s*(\d*)$/.exec(this.get("threshold"));
+    var res = regex.exec(this.get("threshold"));
     return res.slice(1, 1 + l);
+  },
+  setFirst: function setFirst(val) {
+    var res = regex.exec(this.get("threshold"));
+    res = res.slice(1, 4);
+    _.each(res, function (o, i) {
+      if (i < 1 && o === "") {
+        res[i] = val;
+      }
+    });
+    res[0] = val;
+    this.set("threshold", res.join(" "));
+  },
+  setSecond: function setSecond(val) {
+    var res = regex.exec(this.get("threshold"));
+    res = res.slice(1, 4);
+    _.each(res, function (o, i) {
+      if (i < 1 && o === "") {
+        res[i] = val;
+      }
+    });
+    res[1] = val;
+    this.set("threshold", res.join(" "));
+  },
+  setThree: function setThree(val) {
+    var res = regex.exec(this.get("threshold"));
+    res = res.slice(1, 4);
+    _.each(res, function (o, i) {
+      if (i < 2 && o === "") {
+        res[i] = val;
+      }
+    });
+    res[2] = val;
+    this.set("threshold", res.join(" "));
   }
 });
 
@@ -2376,8 +2422,18 @@ var Editor = ViewModel.extend({
       if (model.get("from") == "") model.set("from", "00:00");
     }
   },
-  globalClick: function globalClick() {
-    alert(1);
+  thresholdChange: function thresholdChange(model, index, value) {
+    switch (index) {
+      case 0:
+        model.setFirst(value);
+        break;
+      case 1:
+        model.setSecond(value);
+        break;
+      case 2:
+        model.setThree(value);
+        break;
+    }
   }
 });
 

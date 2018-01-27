@@ -29,6 +29,11 @@ const colors = [
 const EditorRowConstructor = ViewModel.extend({
   tpl(props, state, parentState) {
     let isallday = this.model.getFrom() === "" && this.model.getTo() === "";
+    let thresholds = this.model.getThreshold();
+    let l = _.filter(thresholds, o => !!o).length;
+    let inputList = state.selected
+      ? thresholds.slice(0, 3)
+      : thresholds.slice(0, l == 0 ? 1 : l);
     return (
       <div
         className={
@@ -149,11 +154,17 @@ const EditorRowConstructor = ViewModel.extend({
               </select>
             </div>
             <div className="threshold-editor__col-3 ">
-              {this.model.getThreshold(state.selected ? 3 : 1).map((o, i) => {
+              {inputList.map((o, i) => {
                 return (
                   <div className="threshold-editor__threshold-container">
                     <div className="threshold-editor__threshold__value">
-                      <input type="text" />
+                      <input
+                        type="number"
+                        value={inputList[i]}
+                        onchange={({ target: { value } }) =>
+                          parentState.thresholdChange(this.model, i, value)
+                        }
+                      />
                     </div>
                     <div className="threshold-editor__threshold__tip">
                       <span className={tips[i].className}>

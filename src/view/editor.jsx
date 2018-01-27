@@ -106,8 +106,18 @@ const Editor = ViewModel.extend({
       if (model.get("from") == "") model.set("from", "00:00");
     }
   },
-  globalClick() {
-    alert(1);
+  thresholdChange(model, index, value) {
+    switch (index) {
+      case 0:
+        model.setFirst(value);
+        break;
+      case 1:
+        model.setSecond(value);
+        break;
+      case 2:
+        model.setThree(value);
+        break;
+    }
   }
 });
 
