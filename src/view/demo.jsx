@@ -45,7 +45,7 @@ export const HomeView = ViewModel.extend({
     return (
       <div className="threshold-editor">
         <span onclick={() => this.toClick()}>{this.model.get("text")}</span>
-        <ListView {...{ collection: this.collection }} />
+        <ListView {...{ collection: this.collection, components: this.components, instanceName: 'ListView' }}  />
       </div>
     );
   },

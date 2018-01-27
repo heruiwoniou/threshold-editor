@@ -1,35 +1,10 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('backbone')) :
-	typeof define === 'function' && define.amd ? define(['backbone'], factory) :
-	(global.ThresholdEditor = factory(global.Backbone));
-}(this, (function (backbone) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('backbone'), require('underscore')) :
+	typeof define === 'function' && define.amd ? define(['backbone', 'underscore'], factory) :
+	(global.ThresholdEditor = factory(global.Backbone,global._));
+}(this, (function (backbone,_) { 'use strict';
 
-function __$$styleInject(css, ref) {
-  if ( ref === void 0 ) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') { return; }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
+_ = _ && _.hasOwnProperty('default') ? _['default'] : _;
 
 var nativeIsArray = Array.isArray;
 var toString = Object.prototype.toString;
@@ -2132,10 +2107,7 @@ var ViewModel = backbone.View.extend({
   tree: null,
   // real dom
   treeNode: null,
-  initialize: function initialize() {
-    this.render();
-  },
-
+  components: {},
   // virtual render,
   tpl: function tpl() {},
   initializeRender: function initializeRender() {
@@ -2159,70 +2131,281 @@ var ViewModel = backbone.View.extend({
 });
 
 function Component (Constructor) {
-  return function () {
-    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
+  return function (option) {
+    var components = option.components,
+        instanceName = option.instanceName,
+        props = option.props,
+        state = option.state,
+        parentState = option.parentState;
 
-    return new (Function.prototype.bind.apply(Constructor, [null].concat(args)))().tpl();
+    var instance = null;
+    if (!(instance = components[instanceName])) {
+      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
+
+      instance = components[instanceName] = new (Function.prototype.bind.apply(Constructor, [null].concat([option], args)))();
+    }
+    return instance.tpl(props, state, parentState);
   };
 }
 
-var DataModel = backbone.Model.extend({
-  defaults: {
-    text: "Hello, World!"
+var slicedToArray = function () {
+  function sliceIterator(arr, i) {
+    var _arr = [];
+    var _n = true;
+    var _d = false;
+    var _e = undefined;
+
+    try {
+      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+        _arr.push(_s.value);
+
+        if (i && _arr.length === i) break;
+      }
+    } catch (err) {
+      _d = true;
+      _e = err;
+    } finally {
+      try {
+        if (!_n && _i["return"]) _i["return"]();
+      } finally {
+        if (_d) throw _e;
+      }
+    }
+
+    return _arr;
   }
-});
 
-var DataModels = backbone.Collection.extend({
-  model: DataModel
-});
+  return function (arr, i) {
+    if (Array.isArray(arr)) {
+      return arr;
+    } else if (Symbol.iterator in Object(arr)) {
+      return sliceIterator(arr, i);
+    } else {
+      throw new TypeError("Invalid attempt to destructure non-iterable instance");
+    }
+  };
+}();
 
-var ListView = Component(ViewModel.extend({
-  tpl: function tpl() {
+var tips = [{
+  className: "threshold-editor__note threshold-editor__note--warn",
+  text: "trigger a warning"
+}, {
+  className: "threshold-editor__note threshold-editor__note--error",
+  text: "trigger an error"
+}, {
+  className: "threshold-editor__note threshold-editor__note--critical",
+  text: "trigger a critical"
+}];
+var colors = ["purple", "light-blue", "green", "blue", "magenta", "bright-green"];
+var EditorRowConstructor = ViewModel.extend({
+  tpl: function tpl(props, state, parentState) {
     var _this = this;
 
-    return h_1('ul', null, [this.collection.map(function (model, i) {
-      return h_1('li', { onclick: function onclick() {
-          return _this.toRemove(model);
-        } }, [model.get("text")]);
-    })]);
-  },
-  toRemove: function toRemove(model) {
-    this.collection.remove(model);
+    var isallday = this.model.getFrom() === "" && this.model.getTo() === "";
+    return h_1('div', {
+      className: state.selected ? "threshold-editor__single-rules threshold-editor__single-rules--active" : "threshold-editor__single-rules"
+
+    }, [h_1('div', {
+      className: "threshold-editor__trigger--itemclick",
+      onclick: function onclick() {
+        return parentState.itemClick(state.index);
+      }
+    }, [h_1('span', {
+      className: "threshold-editor__color-tab threshold-editor__color-tab--" + colors[state.index % colors.length]
+    }), h_1('div', { className: "threshold-editor__row threshold-editor__list" }, [h_1('div', { className: "threshold-editor__col-2 threshold-editor__list--occupy-container" }, [h_1('div', {
+      className: isallday ? "threshold-editor__list--occupy is-allday" : "threshold-editor__list--occupy"
+
+    }, [h_1('div', { className: "threshold-editor__row" }, [h_1('div', {
+      className: isallday ? "threshold-editor__col-10" : "threshold-editor__col-5"
+
+    }, [h_1('select', {
+      onchange: function onchange(e) {
+        return parentState.fromChange(_this.model, e.target.value);
+      }
+
+    }, [_.range(24).map(function (o, i) {
+      var hours = i.toString().length >= 2 ? i.toString() : "0" + i;
+      var t = "00:00".replace(/00/, hours);
+      return h_1('option', Object.assign({
+        value: hours }, { selected: _this.model.getFrom() === hours }), [t]);
+    }), h_1('option', Object.assign({
+      value: "" }, { selected: this.model.getFrom() === "" }), ["all day"])])]), isallday ? "" : h_1('div', { className: "threshold-editor__col-5" }, [h_1('select', {
+      onchange: function onchange(e) {
+        return parentState.toChange(_this.model, e.target.value);
+      }
+
+    }, [_.range(24).map(function (o, i) {
+      var hours = i.toString().length >= 2 ? i.toString() : "0" + i;
+      var t = "00:00".replace(/00/, hours);
+      return h_1('option', {
+        value: hours,
+        selected: _this.model.getTo() === hours
+      }, [t]);
+    }), h_1('option', { value: "", selected: this.model.getTo() === "" }, ["all day"])])])])])]), h_1('div', { className: "threshold-editor__col-2" }, [h_1('b', null, ["when the ErrorSystem"])]), h_1('div', { className: "threshold-editor__col-1" }, [h_1('select', null, [h_1('option', { value: "value" }, ["value"]), h_1('option', { value: "delta" }, ["delta"])])]), h_1('div', { className: "threshold-editor__col-2" }, [h_1('select', null, [[[">", "is greater than (>)"], ["<", "is less than (<)"], ["=", "is equa l to (=)"]].map(function (_ref) {
+      var _ref2 = slicedToArray(_ref, 2),
+          value = _ref2[0],
+          text = _ref2[1];
+
+      return h_1('option', {
+        value: value,
+        selected: value === _this.model.get("operator")
+      }, [text]);
+    })])]), h_1('div', { className: "threshold-editor__col-3 " }, [this.model.getThreshold(state.selected ? 3 : 1).map(function (o, i) {
+      return h_1('div', { className: "threshold-editor__threshold-container" }, [h_1('div', { className: "threshold-editor__threshold__value" }, [h_1('input', { type: "text" })]), h_1('div', { className: "threshold-editor__threshold__tip" }, [h_1('span', { className: tips[i].className }, [tips[i].text, h_1('i')])])]);
+    })])])]), state.selected ? h_1('a', {
+      href: "javascript:;",
+      className: "threshold-editor__delete",
+      onclick: function onclick() {
+        return parentState.removeItem(_this.model, state.index);
+      } }) : ""]);
   }
-}));
+});
 
-var i = 0;
+var EditorRow = Component(EditorRowConstructor);
 
-var HomeView = ViewModel.extend({
+var rules = /\((\d{2}:\d{2}\s*\d{2}:\d{2})\)\s*([><=])\s*(\d*\s*\d*\s*\d*)|(\s*)([><=])\s*(\d*\s*\d*\s*\d*)/;
+var analysis = function analysis(str) {
+  var mathes = rules.exec(str);
+  var time = mathes[1] || mathes[4];
+  var times = time.split(" ");
+  var operator = mathes[2] || mathes[5];
+  var threshold = mathes[3] || mathes[6];
+  var instance = new Threshold({
+    from: times.length == 2 ? times[0] : "",
+    to: times.length == 2 ? times[1] : "",
+    operator: operator,
+    threshold: threshold
+  });
+  window[instance.cid] = instance;
+  return instance;
+};
+var Threshold = backbone.Model.extend({
+  defaults: {
+    from: "",
+    to: "",
+    operator: ">",
+    threshold: ""
+  },
+  getFrom: function getFrom() {
+    return this.get("from").split(":")[0];
+  },
+  getTo: function getTo() {
+    return this.get("to").split(":")[0];
+  },
+  getThreshold: function getThreshold() {
+    var l = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 3;
+
+    var res = /^(\d*)\s*(\d*)\s*(\d*)$/.exec(this.get("threshold"));
+    return res.slice(1, 1 + l);
+  }
+});
+
+var State = backbone.Model.extend({
+  defaults: {
+    selectIndex: -1,
+    globalClickCancel: false
+  }
+});
+
+var Editor = ViewModel.extend({
   initialize: function initialize() {
-    this.model ? this.listenTo(this.model, "change", this.render) : null;
+    var _this = this;
+
+    $(document).on("click", function (e) {
+      if (!_this.globalClickCancel) {
+        _this.model.set("selectIndex", -1);
+      }
+      _this.globalClickCancel = false;
+    });
+    this.listenTo(this.model, "change", this.render);
     this.listenTo(this.collection, "add remove change", this.render);
     this.render();
   },
   tpl: function tpl() {
     var _this2 = this;
 
-    return h_1('div', { className: "threshold-editor" }, [h_1('span', { onclick: function onclick() {
-        return _this2.toClick();
-      } }, [this.model.get("text")]), ListView(Object.assign({}, { collection: this.collection }))]);
+    return h_1('div', { className: "threshold-editor", id: "threshold-editor-" + this.cid }, [h_1('div', { className: "threshold-editor__row threshold-editor__header" }, [h_1('div', { className: "threshold-editor__col-1" }, ["From", h_1('span', { className: "threshold-editor__split" })]), h_1('div', { className: "threshold-editor__col-1" }, ["Until", h_1('span', { className: "threshold-editor__split" })]), h_1('div', { className: "threshold-editor__col-5" }, ["Comparison", h_1('span', { className: "threshold-editor__split" })]), h_1('div', { className: "threshold-editor__col-3" }, ["Alerts"])]), h_1('div', { className: "threshold-editor__row threshold-editor__control" }, [h_1('div', { className: "threshold-editor__col-10" }, [h_1('a', {
+      href: "javascript:;",
+      className: "threshold-editor__button threshold-editor__button--add",
+      onclick: function onclick() {
+        return _this2.addNewItem();
+      }
+    }, ["add a new threshold (+)"])])]), h_1('div', { className: "threshold-editor__body" }, [this.collection.map(function (model, i) {
+      return EditorRow(Object.assign({}, {
+        state: {
+          index: i,
+          selected: _this2.model.get("selectIndex", i) == i
+        },
+        parentState: _this2,
+        model: model,
+        components: _this2.components,
+        instanceName: "component-" + model.cid
+      }));
+    })])]);
   },
-  toClick: function toClick() {
-    this.model.set("text", "hellow-----" + Math.random() * 1e3);
-    this.collection.add({ text: i++ });
+  itemClick: function itemClick(i) {
+    this.globalClickCancel = true;
+    this.model.set("selectIndex", i);
+  },
+  addNewItem: function addNewItem() {
+    this.collection.add(new Threshold());
+  },
+  removeItem: function removeItem(model, index) {
+    if (this.model.get("selectIndex") == index) {
+      this.model.set("selectIndex", -1);
+    }
+    this.collection.remove(model);
+  },
+  fromChange: function fromChange(model, value) {
+    if (value === "") {
+      model.set("from", "");
+      model.set("to", "");
+    } else {
+      model.set("from", value === "" ? "" : value + ":00");
+      if (model.get("to") == "") model.set("to", "00:00");
+    }
+  },
+  toChange: function toChange(model, value) {
+    if (value === "") {
+      model.set("from", "");
+      model.set("to", "");
+    } else {
+      model.set("to", value === "" ? "" : value + ":00");
+      if (model.get("from") == "") model.set("from", "00:00");
+    }
+  },
+  globalClick: function globalClick() {
+    alert(1);
   }
 });
 
-var ThresholdEditor = Object.freeze({
-	DataModel: DataModel,
-	DataModels: DataModels,
-	HomeView: HomeView
+function Editor$1 (option) {
+  option.model = new State();
+
+  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    args[_key - 1] = arguments[_key];
+  }
+
+  return new (Function.prototype.bind.apply(Editor, [null].concat([option], args)))();
+}
+
+var Thresholds = backbone.Collection.extend({
+  model: Threshold
 });
 
-var css = ".threshold-editor {\n  padding-right: 20px;\n}\n.threshold-editor input,\n.threshold-editor select {\n  outline: none;\n}\n.threshold-editor ul,\n.threshold-editor li,\n.threshold-editor p,\n.threshold-editor h1,\n.threshold-editor div {\n  font-size: 12px;\n  padding: 0;\n  margin: 0px;\n  box-sizing: border-box;\n}\n.threshold-editor .threshold-editor__row [class*=threshold-editor__col-] {\n  float: left;\n  min-height: 21px;\n}\n.threshold-editor .threshold-editor__row [class*=threshold-editor__col-].has-vertical-line {\n  border-right: 1px dotted #c3c2c2;\n}\n.threshold-editor .threshold-editor__row:before,\n.threshold-editor .threshold-editor__row:after {\n  content: '';\n  display: table;\n}\n.threshold-editor .threshold-editor__row:after {\n  clear: both;\n}\n.threshold-editor .threshold-editor__col-1 {\n  width: 10%;\n}\n.threshold-editor .threshold-editor__col-2 {\n  width: 20%;\n}\n.threshold-editor .threshold-editor__col-3 {\n  width: 30%;\n}\n.threshold-editor .threshold-editor__col-4 {\n  width: 40%;\n}\n.threshold-editor .threshold-editor__col-5 {\n  width: 50%;\n}\n.threshold-editor .threshold-editor__col-6 {\n  width: 60%;\n}\n.threshold-editor .threshold-editor__col-7 {\n  width: 70%;\n}\n.threshold-editor .threshold-editor__col-8 {\n  width: 80%;\n}\n.threshold-editor .threshold-editor__col-9 {\n  width: 90%;\n}\n.threshold-editor .threshold-editor__col-10 {\n  width: 100%;\n}\n.threshold-editor .threshold-editor__header {\n  line-height: 21px;\n}\n.threshold-editor .threshold-editor__header>div {\n  padding-left: 11px;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  overflow: hidden;\n}\n.threshold-editor .threshold-editor__button {\n  height: 24px;\n  line-height: 22px;\n  border: 1px solid #ccc;\n  background: #daeff6;\n  text-indent: 12px;\n  display: block;\n  text-decoration: none;\n  color: #aaa;\n}\n.threshold-editor .threshold-editor__button:hover {\n  color: #555;\n}\n.threshold-editor .threshold-editor__list {\n  line-height: 30px;\n}\n.threshold-editor .threshold-editor__list>div {\n  padding: 0 11px;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  overflow: hidden;\n}\n.threshold-editor .threshold-editor__list b {\n  color: #777;\n}\n.threshold-editor .threshold-editor__list select {\n  width: 100%;\n  border: none;\n  border-bottom: 1px dotted #ccc;\n}\n/*# sourceMappingURL=src/style/index.css.map */\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInNyYy9zdHlsZS9pbmRleC5zdHlsIiwiaW5kZXguc3R5bCIsInNyYy9zdHlsZS92YXJzLnN0eWwiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBRUE7RUFDRSxvQkFBQTtDQ0REO0FER0M7O0VBQ0UsY0FBQTtDQ0FIO0FER0M7Ozs7O0VBQ0UsZ0JBQUE7RUFDQSxXQUFBO0VBQ0EsWUFBQTtFQUNBLHVCQUFBO0NDR0g7QURDRztFQUNFLFlBQUE7RUFDQSxpQkFBQTtDQ0NMO0FEQ0s7RUFDRSxpQ0FBQTtDQ0NQO0FER0c7O0VBQ0UsWUFBQTtFQUNBLGVBQUE7Q0NBTDtBREdHO0VBQ0UsWUFBQTtDQ0RMO0FETUc7RUFDRSxXQUFBO0NDSkw7QURHRztFQUNFLFdBQUE7Q0NETDtBREFHO0VBQ0UsV0FBQTtDQ0VMO0FESEc7RUFDRSxXQUFBO0NDS0w7QURORztFQUNFLFdBQUE7Q0NRTDtBRFRHO0VBQ0UsV0FBQTtDQ1dMO0FEWkc7RUFDRSxXQUFBO0NDY0w7QURmRztFQUNFLFdBQUE7Q0NpQkw7QURsQkc7RUFDRSxXQUFBO0NDb0JMO0FEckJHO0VBQ0UsWUFBQTtDQ3VCTDtBRG5CQztFQUNFLGtCQUFBO0NDcUJIO0FEbkJHO0VBQ0UsbUJBQUE7RUUzQ0osd0JBQUE7RUFDQSxvQkFBQTtFQUNBLGlCQUFBO0NEaUVEO0FEbkJDO0VBQ0UsYUFBQTtFQUNBLGtCQUFBO0VBQ0EsdUJBQUE7RUFDQSxvQkFBQTtFQUNBLGtCQUFBO0VBQ0EsZUFBQTtFQUNBLHNCQUFBO0VBQ0EsWUFBQTtDQ3FCSDtBRG5CRztFQUNFLFlBQUE7Q0NxQkw7QURqQkM7RUFDRSxrQkFBQTtDQ21CSDtBRGpCRztFQUNFLGdCQUFBO0VFbkVKLHdCQUFBO0VBQ0Esb0JBQUE7RUFDQSxpQkFBQTtDRHVGRDtBRGxCRztFQUNFLFlBQUE7Q0NvQkw7QURqQkc7RUFDRSxZQUFBO0VBQ0EsYUFBQTtFQUNBLCtCQUFBO0NDbUJMO0FBQ0QsK0NBQStDIiwiZmlsZSI6ImluZGV4LnN0eWwifQ== */";
-__$$styleInject(css);
+function index (el) {
+  var datas = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
 
-return ThresholdEditor;
+  return new Editor$1({
+    el: el,
+    collection: new Thresholds(_.chain(datas.split(",")).compact().map(function (o) {
+      return analysis(o);
+    }).value())
+  });
+}
+
+return index;
 
 })));

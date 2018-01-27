@@ -4,15 +4,12 @@ import createElement from "virtual-dom/create-element";
 import diff from "virtual-dom/diff";
 import patch from "virtual-dom/patch";
 
-
 let ViewModel = View.extend({
   // virtual tree
   tree: null,
   // real dom
   treeNode: null,
-  initialize() {
-    this.render();
-  },
+  components: {},
   // virtual render,
   tpl() {},
   initializeRender() {

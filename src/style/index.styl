@@ -1,13 +1,14 @@
 @import './vars.styl';
 
 .threshold-editor {
-  padding-right: 20px;
+  padding-right: 30px;
+  position: relative;
 
   input, select {
     outline: none;
   }
 
-  ul, li, p, h1, div {
+  ul, li, p, h1, div, span, i, a {
     font-size: 12px;
     padding: 0;
     margin: 0px;
@@ -42,11 +43,18 @@
 
   .threshold-editor__header {
     line-height: 21px;
+    margin-left: 10px;
 
     &>div {
       padding-left: 11px;
       textEllipsis();
     }
+  }
+
+  .threshold-editor__control {
+    margin: 5px 0;
+    position: relative;
+    z-index: 1;
   }
 
   .threshold-editor__button {
@@ -66,20 +74,189 @@
 
   .threshold-editor__list {
     line-height: 30px;
+    margin-left: 10px;
+    position: relative;
 
     &>div {
       padding: 0 11px;
       textEllipsis();
     }
 
+    .threshold-editor__list--occupy-container {
+      padding: 0;
+
+      .threshold-editor__list--occupy {
+        background: white;
+        position: absolute;
+        width: 20%;
+        top: 0;
+        bottom: -1px;
+
+        &.is-allday {
+          z-index: 1;
+        }
+      }
+
+      [class*=threshold-editor__col] {
+        padding: 0 11px;
+        textEllipsis();
+      }
+    }
+
     b {
       color: #777777;
     }
 
-    select {
+    select, input {
       width: 100%;
       border: none;
       border-bottom: 1px dotted #ccc;
+      height: 21px;
+      background: transparent;
+      font-weight: 600;
+    }
+
+    input {
+      position: relative;
+      top: -1px;
+    }
+
+    .threshold-editor__note {
+      line-height: 21px;
+      height: 21px;
+      border-radius: 2px;
+      color: white;
+      display: inline-block;
+      padding: 0 4px;
+      width: 100%;
+      text-align: center;
+
+      i {
+        width: 16px;
+        height: 17px;
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 5px;
+        margin-top: 4px;
+        float: right;
+      }
+
+      for key, value in trigger-colors {
+        &.threshold-editor__note--{key} {
+          {value};
+        }
+      }
+    }
+  }
+
+  .threshold-editor__single-rules {
+    position: relative;
+    padding-bottom: 2px;
+
+    .threshold-editor__color-tab {
+      position: absolute;
+      left: 0;
+      width: 10px;
+      top: 1px;
+      bottom: 1px;
+
+      for key, value in colors {
+        &.threshold-editor__color-tab--{key} {
+          background: value;
+        }
+      }
+    }
+
+    &:hover {
+      background: #efefef;
+
+      .threshold-editor__list--occupy {
+        background: #efefef;
+      }
+    }
+
+    &.threshold-editor__single-rules--active {
+      background: #daeff6;
+      padding: 2px 0 4px 0;
+
+      .threshold-editor__list--occupy {
+        background: #daeff6;
+
+        &.is-allday {
+          top: -2px;
+          bottom: -4px;
+          border-top: 2px solid #56b6d9;
+          border-bottom: 2px solid #56b6d9;
+        }
+      }
+
+      .threshold-editor__color-tab {
+        top: 3px;
+        bottom: 3px;
+      }
+
+      &:before, &:after {
+        position: absolute;
+        width: 100%;
+        content: '';
+        display: block;
+        background: #56b6d9;
+        height: 2px;
+        left: 0;
+      }
+
+      &:before {
+        top: 0px;
+      }
+
+      &:after {
+        bottom: 0px;
+      }
+    }
+  }
+
+  .threshold-editor__threshold-container {
+    position: relative;
+
+    .threshold-editor__threshold__value {
+      margin-right: 160px;
+    }
+
+    .threshold-editor__threshold__tip {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 150px;
+    }
+  }
+
+  .threshold-editor__delete {
+    position: absolute;
+    right: -30px;
+    top: 5px;
+    width: 27px;
+    height: 25px;
+    background: #cccccc url('./img/delete.png') no-repeat center;
+    border-bottom: 2px solid #5c5c5c;
+    opacity: 0.8;
+    border-radius: 3px;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  .threshold-editor__split {
+    float: right;
+
+    &:before {
+      content: '';
+      z-index: 1;
+      position: absolute;
+      top: 0;
+      bottom: 0px;
+      width: 0;
+      border-right: 1px dotted #ccc;
     }
   }
 }

@@ -1,4 +1,43 @@
 gridColumns = 10;
+color-purple = #5f2f69;
+color-light-blue = #009edf;
+color-green = #9cc416;
+color-blue = #0049a0;
+color-magenta = #9e156d;
+color-bright-green = #10b50c;
+color-warn = #ffcc00;
+color-error = #f26522;
+color-critical = #ed1e24;
+colors = {
+  purple: color-purple,
+  light-blue: color-light-blue,
+  green: color-green,
+  blue: color-blue,
+  magenta: color-magenta,
+  bright-green: color-bright-green
+};
+trigger-colors = {
+  warn: {
+    color: #777777,
+    background: color-warn,
+    i: {
+      background: url('./img/warn.png') no-repeat
+    }
+  },
+  error: {
+    background: color-error,
+    i: {
+      background: url('./img/warn.png') no-repeat
+    }
+  },
+  critical: {
+    background: color-critical,
+    i: {
+      background: url('./img/critical.png') no-repeat,
+      margin-top: 2px
+    }
+  }
+};
 
 textEllipsis() {
   text-overflow: ellipsis;
