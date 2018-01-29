@@ -3,8 +3,9 @@ import h from "virtual-dom/h";
 import createElement from "virtual-dom/create-element";
 import ViewModel from "./../common/view-model";
 
-import EditorRow from "./components/EditorRow.jsx";
 import Threshold from "./../model/threshold";
+import EditorRow from "./components/EditorRow.jsx";
+import TimeLine from "./components/TimeLine.jsx";
 
 const State = Model.extend({
   defaults: {
@@ -28,50 +29,60 @@ const Editor = ViewModel.extend({
   tpl() {
     return (
       <div className="threshold-editor" id={"threshold-editor-" + this.cid}>
-        <div className="threshold-editor__row threshold-editor__header">
-          <div className="threshold-editor__col-1">
-            From
-            <span className="threshold-editor__split" />
-          </div>
-          <div className="threshold-editor__col-1">
-            Until
-            <span className="threshold-editor__split" />
-          </div>
-          <div className="threshold-editor__col-5">
-            Comparison
-            <span className="threshold-editor__split" />
-          </div>
-          <div className="threshold-editor__col-3">Alerts</div>
-        </div>
-        <div className="threshold-editor__row threshold-editor__control">
-          <div className="threshold-editor__col-10">
-            <a
-              href="javascript:;"
-              className="threshold-editor__button threshold-editor__button--add"
-              onclick={() => this.addNewItem()}
-            >
-              add a new threshold (+)
-            </a>
-          </div>
-        </div>
         <div className="threshold-editor__body">
-          {this.collection.map((model, i) => {
-            return (
-              <EditorRow
-                {...{
-                  state: {
-                    index: i,
-                    selected: this.model.get("selectIndex", i) == i
-                  },
-                  parentState: this,
-                  model,
-                  components: this.components,
-                  instanceName: "component-" + model.cid
-                }}
-              />
-            );
-          })}
+          <div className="threshold-editor__row threshold-editor__header">
+            <div className="threshold-editor__col-1">
+              From
+              <span className="threshold-editor__split" />
+            </div>
+            <div className="threshold-editor__col-1">
+              Until
+              <span className="threshold-editor__split" />
+            </div>
+            <div className="threshold-editor__col-5">
+              Comparison
+              <span className="threshold-editor__split" />
+            </div>
+            <div className="threshold-editor__col-3">Alerts</div>
+          </div>
+          <div className="threshold-editor__row threshold-editor__control">
+            <div className="threshold-editor__col-10">
+              <a
+                href="javascript:;"
+                className="threshold-editor__button threshold-editor__button--add"
+                onclick={() => this.addNewItem()}
+              >
+                add a new threshold (+)
+              </a>
+            </div>
+          </div>
+          <div className="threshold-editor__content">
+            {this.collection.map((model, i) => {
+              return (
+                <EditorRow
+                  {...{
+                    state: {
+                      index: i,
+                      selected: this.model.get("selectIndex", i) == i
+                    },
+                    parentState: this,
+                    model,
+                    components: this.components,
+                    instanceName: "component-editor-row" + model.cid
+                  }}
+                />
+              );
+            })}
+          </div>
         </div>
+        <TimeLine
+          {...{
+            parentState: this,
+            collection: this.collection,
+            components: this.components,
+            instanceName: "component-time-line" + this.cid
+          }}
+        />
       </div>
     );
   },
@@ -98,13 +109,7 @@ const Editor = ViewModel.extend({
     }
   },
   toChange(model, value) {
-    if (value === "") {
-      model.set("from", "");
-      model.set("to", "");
-    } else {
-      model.set("to", value === "" ? "" : value + ":00");
-      if (model.get("from") == "") model.set("from", "00:00");
-    }
+    model.set("to", value === "" ? "" : value + ":00");
   },
   thresholdChange(model, index, value) {
     switch (index) {

@@ -5,6 +5,6 @@ export default function(Constructor) {
     if (!(instance = components[instanceName])) {
       instance = components[instanceName] = new Constructor(option, ...args);
     }
-    return instance.tpl(props, state, parentState);
+    return instance.tpl(props || {}, state || {}, parentState);
   };
 }

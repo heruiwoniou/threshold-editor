@@ -2130,153 +2130,6 @@ var ViewModel = backbone.View.extend({
   }
 });
 
-function Component (Constructor) {
-  return function (option) {
-    var components = option.components,
-        instanceName = option.instanceName,
-        props = option.props,
-        state = option.state,
-        parentState = option.parentState;
-
-    var instance = null;
-    if (!(instance = components[instanceName])) {
-      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-        args[_key - 1] = arguments[_key];
-      }
-
-      instance = components[instanceName] = new (Function.prototype.bind.apply(Constructor, [null].concat([option], args)))();
-    }
-    return instance.tpl(props, state, parentState);
-  };
-}
-
-var slicedToArray = function () {
-  function sliceIterator(arr, i) {
-    var _arr = [];
-    var _n = true;
-    var _d = false;
-    var _e = undefined;
-
-    try {
-      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-        _arr.push(_s.value);
-
-        if (i && _arr.length === i) break;
-      }
-    } catch (err) {
-      _d = true;
-      _e = err;
-    } finally {
-      try {
-        if (!_n && _i["return"]) _i["return"]();
-      } finally {
-        if (_d) throw _e;
-      }
-    }
-
-    return _arr;
-  }
-
-  return function (arr, i) {
-    if (Array.isArray(arr)) {
-      return arr;
-    } else if (Symbol.iterator in Object(arr)) {
-      return sliceIterator(arr, i);
-    } else {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance");
-    }
-  };
-}();
-
-var tips = [{
-  className: "threshold-editor__note threshold-editor__note--warn",
-  text: "trigger a warning"
-}, {
-  className: "threshold-editor__note threshold-editor__note--error",
-  text: "trigger an error"
-}, {
-  className: "threshold-editor__note threshold-editor__note--critical",
-  text: "trigger a critical"
-}];
-var colors = ["purple", "light-blue", "green", "blue", "magenta", "bright-green"];
-var EditorRowConstructor = ViewModel.extend({
-  tpl: function tpl(props, state, parentState) {
-    var _this = this;
-
-    var isallday = this.model.getFrom() === "" && this.model.getTo() === "";
-    var thresholds = this.model.getThreshold();
-    var l = _.filter(thresholds, function (o) {
-      return !!o;
-    }).length;
-    var inputList = state.selected ? thresholds.slice(0, 3) : thresholds.slice(0, l == 0 ? 1 : l);
-    return h_1('div', {
-      className: state.selected ? "threshold-editor__single-rules threshold-editor__single-rules--active" : "threshold-editor__single-rules"
-
-    }, [h_1('div', {
-      className: "threshold-editor__trigger--itemclick",
-      onclick: function onclick() {
-        return parentState.itemClick(state.index);
-      }
-    }, [h_1('span', {
-      className: "threshold-editor__color-tab threshold-editor__color-tab--" + colors[state.index % colors.length]
-    }), h_1('div', { className: "threshold-editor__row threshold-editor__list" }, [h_1('div', { className: "threshold-editor__col-2 threshold-editor__list--occupy-container" }, [h_1('div', {
-      className: isallday ? "threshold-editor__list--occupy is-allday" : "threshold-editor__list--occupy"
-
-    }, [h_1('div', { className: "threshold-editor__row" }, [h_1('div', {
-      className: isallday ? "threshold-editor__col-10" : "threshold-editor__col-5"
-
-    }, [h_1('select', {
-      onchange: function onchange(e) {
-        return parentState.fromChange(_this.model, e.target.value);
-      }
-
-    }, [_.range(24).map(function (o, i) {
-      var hours = i.toString().length >= 2 ? i.toString() : "0" + i;
-      var t = "00:00".replace(/00/, hours);
-      return h_1('option', Object.assign({
-        value: hours }, { selected: _this.model.getFrom() === hours }), [t]);
-    }), h_1('option', Object.assign({
-      value: "" }, { selected: this.model.getFrom() === "" }), ["all day"])])]), isallday ? "" : h_1('div', { className: "threshold-editor__col-5" }, [h_1('select', {
-      onchange: function onchange(e) {
-        return parentState.toChange(_this.model, e.target.value);
-      }
-
-    }, [_.range(24).map(function (o, i) {
-      var hours = i.toString().length >= 2 ? i.toString() : "0" + i;
-      var t = "00:00".replace(/00/, hours);
-      return h_1('option', {
-        value: hours,
-        selected: _this.model.getTo() === hours
-      }, [t]);
-    }), h_1('option', { value: "", selected: this.model.getTo() === "" }, ["all day"])])])])])]), h_1('div', { className: "threshold-editor__col-2" }, [h_1('b', null, ["when the ErrorSystem"])]), h_1('div', { className: "threshold-editor__col-1" }, [h_1('select', null, [h_1('option', { value: "value" }, ["value"]), h_1('option', { value: "delta" }, ["delta"])])]), h_1('div', { className: "threshold-editor__col-2" }, [h_1('select', null, [[[">", "is greater than (>)"], ["<", "is less than (<)"], ["=", "is equa l to (=)"]].map(function (_ref) {
-      var _ref2 = slicedToArray(_ref, 2),
-          value = _ref2[0],
-          text = _ref2[1];
-
-      return h_1('option', {
-        value: value,
-        selected: value === _this.model.get("operator")
-      }, [text]);
-    })])]), h_1('div', { className: "threshold-editor__col-3 " }, [inputList.map(function (o, i) {
-      return h_1('div', { className: "threshold-editor__threshold-container" }, [h_1('div', { className: "threshold-editor__threshold__value" }, [h_1('input', {
-        type: "number",
-        value: inputList[i],
-        onchange: function onchange(_ref3) {
-          var value = _ref3.target.value;
-          return parentState.thresholdChange(_this.model, i, value);
-        }
-      })]), h_1('div', { className: "threshold-editor__threshold__tip" }, [h_1('span', { className: tips[i].className }, [tips[i].text, h_1('i')])])]);
-    })])])]), state.selected ? h_1('a', {
-      href: "javascript:;",
-      className: "threshold-editor__delete",
-      onclick: function onclick() {
-        return parentState.removeItem(_this.model, state.index);
-      } }) : ""]);
-  }
-});
-
-var EditorRow = Component(EditorRowConstructor);
-
 var regex = /^([\d\.]*)\s*([\d\.]*)\s*([\d\.]*)$/;
 var rules = /\((\d{2}:\d{2}\s*\d{2}:\d{2})\)\s*([><=])\s*(\d*\s*\d*\s*\d*)|(\s*)([><=])\s*(\d*\s*\d*\s*\d*)/;
 var analysis = function analysis(str) {
@@ -2285,14 +2138,12 @@ var analysis = function analysis(str) {
   var times = time.split(" ");
   var operator = mathes[2] || mathes[5];
   var threshold = mathes[3] || mathes[6];
-  var instance = new Threshold({
+  return new Threshold({
     from: times.length == 2 ? times[0] : "",
     to: times.length == 2 ? times[1] : "",
     operator: operator,
     threshold: threshold
   });
-  window[instance.cid] = instance;
-  return instance;
 };
 var Threshold = backbone.Model.extend({
   defaults: {
@@ -2345,8 +2196,231 @@ var Threshold = backbone.Model.extend({
     });
     res[2] = val;
     this.set("threshold", res.join(" "));
+  },
+  isallday: function isallday() {
+    return this.getFrom() === "" && this.getTo() === "";
   }
 });
+
+function Component (Constructor) {
+  return function (option) {
+    var components = option.components,
+        instanceName = option.instanceName,
+        props = option.props,
+        state = option.state,
+        parentState = option.parentState;
+
+    var instance = null;
+    if (!(instance = components[instanceName])) {
+      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
+
+      instance = components[instanceName] = new (Function.prototype.bind.apply(Constructor, [null].concat([option], args)))();
+    }
+    return instance.tpl(props || {}, state || {}, parentState);
+  };
+}
+
+var colors = ["purple", "light-blue", "green", "blue", "magenta", "bright-green"];
+
+var TimeConstructor = ViewModel.extend({
+  tpl: function tpl(props, state, parentState) {
+    var _this = this;
+
+    var isallday = this.model.isallday();
+    return h_1('span', null, [h_1('div', { className: "threshold-editor__col-2 threshold-editor__list--occupy-container" }, [h_1('div', {
+      className: isallday ? "threshold-editor__list--occupy is-allday" : "threshold-editor__list--occupy"
+
+    }, [h_1('div', { className: "threshold-editor__row" }, [h_1('div', {
+      className: isallday ? "threshold-editor__col-10 threshold-editor__list--padding" : "threshold-editor__col-5 threshold-editor__list--padding"
+
+    }, [h_1('select', {
+      onchange: function onchange(e) {
+        return parentState.fromChange(_this.model, e.target.value);
+      }
+
+    }, [_.range(24).map(function (o, i) {
+      var hours = i.toString().length >= 2 ? i.toString() : "0" + i;
+      var t = "00:00".replace(/00/, hours);
+      return h_1('option', Object.assign({
+        value: hours }, { selected: _this.model.getFrom() === hours }), [t]);
+    }), h_1('option', Object.assign({
+      value: "" }, { selected: this.model.getFrom() === "" }), ["all day"])])]), isallday ? "" : h_1('div', { className: "threshold-editor__col-5 threshold-editor__list--padding" }, [h_1('select', {
+      onchange: function onchange(e) {
+        return parentState.toChange(_this.model, e.target.value);
+      }
+
+    }, [_.range(24).map(function (o, i) {
+      var hours = i.toString().length >= 2 ? i.toString() : "0" + i;
+      var t = "00:00".replace(/00/, hours);
+      return h_1('option', {
+        value: hours,
+        selected: _this.model.getTo() === hours
+      }, [t]);
+    })])])])])])]);
+  }
+});
+
+var Time = Component(TimeConstructor);
+
+var slicedToArray = function () {
+  function sliceIterator(arr, i) {
+    var _arr = [];
+    var _n = true;
+    var _d = false;
+    var _e = undefined;
+
+    try {
+      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+        _arr.push(_s.value);
+
+        if (i && _arr.length === i) break;
+      }
+    } catch (err) {
+      _d = true;
+      _e = err;
+    } finally {
+      try {
+        if (!_n && _i["return"]) _i["return"]();
+      } finally {
+        if (_d) throw _e;
+      }
+    }
+
+    return _arr;
+  }
+
+  return function (arr, i) {
+    if (Array.isArray(arr)) {
+      return arr;
+    } else if (Symbol.iterator in Object(arr)) {
+      return sliceIterator(arr, i);
+    } else {
+      throw new TypeError("Invalid attempt to destructure non-iterable instance");
+    }
+  };
+}();
+
+var ComparisonConstructor = ViewModel.extend({
+  tpl: function tpl(props, state, parentState) {
+    var _this = this;
+
+    return h_1('span', null, [h_1('div', { className: "threshold-editor__col-2 threshold-editor__list--padding" }, [h_1('b', null, ["when the ErrorSystem"])]), h_1('div', { className: "threshold-editor__col-1 threshold-editor__list--padding" }, [h_1('select', null, [h_1('option', { value: "value" }, ["value"]), h_1('option', { value: "delta" }, ["delta"])])]), h_1('div', { className: "threshold-editor__col-2 threshold-editor__list--padding" }, [h_1('select', null, [[[">", "is greater than (>)"], ["<", "is less than (<)"], ["=", "is equa l to (=)"]].map(function (_ref) {
+      var _ref2 = slicedToArray(_ref, 2),
+          value = _ref2[0],
+          text = _ref2[1];
+
+      return h_1('option', {
+        value: value,
+        selected: value === _this.model.get("operator")
+      }, [text]);
+    })])])]);
+  }
+});
+
+var Comparison = Component(ComparisonConstructor);
+
+var tips = [{
+  className: "threshold-editor__note threshold-editor__note--warn",
+  text: "trigger a warning"
+}, {
+  className: "threshold-editor__note threshold-editor__note--error",
+  text: "trigger an error"
+}, {
+  className: "threshold-editor__note threshold-editor__note--critical",
+  text: "trigger a critical"
+}];
+
+var AlertConstructor = ViewModel.extend({
+  tpl: function tpl(props, state, parentState) {
+    var _this = this;
+
+    var thresholds = this.model.getThreshold();
+    var l = _.filter(thresholds, function (o) {
+      return !!o;
+    }).length;
+    var inputList = state.selected ? thresholds.slice(0, 3) : thresholds.slice(0, l == 0 ? 1 : l);
+    return h_1('span', null, [h_1('div', { className: "threshold-editor__col-3 threshold-editor__list--padding" }, [inputList.map(function (o, i) {
+      return h_1('div', { className: "threshold-editor__threshold-container" }, [h_1('div', { className: "threshold-editor__threshold__value" }, [h_1('input', {
+        type: "number",
+        value: inputList[i],
+        onchange: function onchange(_ref) {
+          var value = _ref.target.value;
+          return parentState.thresholdChange(_this.model, i, value);
+        }
+      })]), h_1('div', { className: "threshold-editor__threshold__tip" }, [h_1('span', { className: tips[i].className }, [tips[i].text, h_1('i')])])]);
+    })])]);
+  }
+});
+
+var Alert = Component(AlertConstructor);
+
+var EditorRowConstructor = ViewModel.extend({
+  tpl: function tpl(props, state, parentState) {
+    var _this = this;
+
+    return h_1('div', {
+      className: state.selected ? "threshold-editor__single-rules threshold-editor__single-rules--active" : "threshold-editor__single-rules"
+
+    }, [h_1('div', {
+      className: "threshold-editor__trigger--itemclick",
+      onclick: function onclick() {
+        return parentState.itemClick(state.index);
+      }
+    }, [h_1('span', {
+      className: "threshold-editor__color-tab " + colors[state.index % colors.length]
+    }), h_1('div', { className: "threshold-editor__row threshold-editor__list" }, [Time(Object.assign({}, {
+      state: state,
+      parentState: parentState,
+      model: this.model,
+      components: parentState.components,
+      instanceName: "component-time-" + this.cid
+    })), Comparison(Object.assign({}, {
+      state: state,
+      parentState: parentState,
+      model: this.model,
+      components: parentState.components,
+      instanceName: "component-comparison-" + this.cid
+    })), Alert(Object.assign({}, {
+      state: state,
+      parentState: parentState,
+      model: this.model,
+      components: parentState.components,
+      instanceName: "component-alert-" + this.cid
+    }))])]), state.selected ? h_1('a', {
+      href: "javascript:;",
+      className: "threshold-editor__delete",
+      onclick: function onclick() {
+        return parentState.removeItem(_this.model, state.index);
+      } }) : ""]);
+  }
+});
+
+var EditorRow = Component(EditorRowConstructor);
+
+var TimeLineConstructor = ViewModel.extend({
+  tpl: function tpl(props, state, parentState) {
+    var _this = this;
+
+    return h_1('div', { className: "threshold-editor__timeline" }, [h_1('div', { className: "threshold-editor__time-panel" }, [_.range(12).map(function (hours) {
+      return h_1('span', null, [2 + hours * 2 + ":00", "  "]);
+    })]), h_1('div', { className: "threshold-editor__timebar-container" }, [this.collection.map(function (model, i) {
+      var isallday = model.isallday();
+      var barStyle = isallday ? { width: "100%" } : {
+        left: ~~model.getFrom() * 100 / 24 + "%",
+        right: (24 - ~~model.getTo()) * 100 / 24 + "%"
+      };
+      barStyle.zIndex = _this.collection.length - i;
+      return h_1('div', {
+        className: "threshold-editor__timebar " + colors[i] + (isallday ? " is-allday" : ""),
+
+        style: barStyle });
+    })])]);
+  }
+});
+
+var TimeLine = Component(TimeLineConstructor);
 
 var State = backbone.Model.extend({
   defaults: {
@@ -2372,13 +2446,13 @@ var Editor = ViewModel.extend({
   tpl: function tpl() {
     var _this2 = this;
 
-    return h_1('div', { className: "threshold-editor", id: "threshold-editor-" + this.cid }, [h_1('div', { className: "threshold-editor__row threshold-editor__header" }, [h_1('div', { className: "threshold-editor__col-1" }, ["From", h_1('span', { className: "threshold-editor__split" })]), h_1('div', { className: "threshold-editor__col-1" }, ["Until", h_1('span', { className: "threshold-editor__split" })]), h_1('div', { className: "threshold-editor__col-5" }, ["Comparison", h_1('span', { className: "threshold-editor__split" })]), h_1('div', { className: "threshold-editor__col-3" }, ["Alerts"])]), h_1('div', { className: "threshold-editor__row threshold-editor__control" }, [h_1('div', { className: "threshold-editor__col-10" }, [h_1('a', {
+    return h_1('div', { className: "threshold-editor", id: "threshold-editor-" + this.cid }, [h_1('div', { className: "threshold-editor__body" }, [h_1('div', { className: "threshold-editor__row threshold-editor__header" }, [h_1('div', { className: "threshold-editor__col-1" }, ["From", h_1('span', { className: "threshold-editor__split" })]), h_1('div', { className: "threshold-editor__col-1" }, ["Until", h_1('span', { className: "threshold-editor__split" })]), h_1('div', { className: "threshold-editor__col-5" }, ["Comparison", h_1('span', { className: "threshold-editor__split" })]), h_1('div', { className: "threshold-editor__col-3" }, ["Alerts"])]), h_1('div', { className: "threshold-editor__row threshold-editor__control" }, [h_1('div', { className: "threshold-editor__col-10" }, [h_1('a', {
       href: "javascript:;",
       className: "threshold-editor__button threshold-editor__button--add",
       onclick: function onclick() {
         return _this2.addNewItem();
       }
-    }, ["add a new threshold (+)"])])]), h_1('div', { className: "threshold-editor__body" }, [this.collection.map(function (model, i) {
+    }, ["add a new threshold (+)"])])]), h_1('div', { className: "threshold-editor__content" }, [this.collection.map(function (model, i) {
       return EditorRow(Object.assign({}, {
         state: {
           index: i,
@@ -2387,9 +2461,14 @@ var Editor = ViewModel.extend({
         parentState: _this2,
         model: model,
         components: _this2.components,
-        instanceName: "component-" + model.cid
+        instanceName: "component-editor-row" + model.cid
       }));
-    })])]);
+    })])]), TimeLine(Object.assign({}, {
+      parentState: this,
+      collection: this.collection,
+      components: this.components,
+      instanceName: "component-time-line" + this.cid
+    }))]);
   },
   itemClick: function itemClick(i) {
     this.globalClickCancel = true;
@@ -2414,13 +2493,7 @@ var Editor = ViewModel.extend({
     }
   },
   toChange: function toChange(model, value) {
-    if (value === "") {
-      model.set("from", "");
-      model.set("to", "");
-    } else {
-      model.set("to", value === "" ? "" : value + ":00");
-      if (model.get("from") == "") model.set("from", "00:00");
-    }
+    model.set("to", value === "" ? "" : value + ":00");
   },
   thresholdChange: function thresholdChange(model, index, value) {
     switch (index) {

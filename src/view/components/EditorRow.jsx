@@ -1,39 +1,16 @@
 import { Model } from "backbone";
 import h from "virtual-dom/h";
-import createElement from "virtual-dom/create-element";
 import ViewModel from "./../../common/view-model";
 import Component from "./../../common/component";
 import _ from "underscore";
-const tips = [
-  {
-    className: "threshold-editor__note threshold-editor__note--warn",
-    text: "trigger a warning"
-  },
-  {
-    className: "threshold-editor__note threshold-editor__note--error",
-    text: "trigger an error"
-  },
-  {
-    className: "threshold-editor__note threshold-editor__note--critical",
-    text: "trigger a critical"
-  }
-];
-const colors = [
-  "purple",
-  "light-blue",
-  "green",
-  "blue",
-  "magenta",
-  "bright-green"
-];
+
+import { colors } from './../utils/colors'
+import Time from "./Time.jsx";
+import Comparison from "./Comparison.jsx";
+import Alert from "./Alert.jsx";
+
 const EditorRowConstructor = ViewModel.extend({
   tpl(props, state, parentState) {
-    let isallday = this.model.getFrom() === "" && this.model.getTo() === "";
-    let thresholds = this.model.getThreshold();
-    let l = _.filter(thresholds, o => !!o).length;
-    let inputList = state.selected
-      ? thresholds.slice(0, 3)
-      : thresholds.slice(0, l == 0 ? 1 : l);
     return (
       <div
         className={
@@ -48,134 +25,38 @@ const EditorRowConstructor = ViewModel.extend({
         >
           <span
             className={
-              "threshold-editor__color-tab threshold-editor__color-tab--" +
+              "threshold-editor__color-tab " +
               colors[state.index % colors.length]
             }
           />
           <div className="threshold-editor__row threshold-editor__list">
-            <div className="threshold-editor__col-2 threshold-editor__list--occupy-container">
-              <div
-                className={
-                  isallday
-                    ? "threshold-editor__list--occupy is-allday"
-                    : "threshold-editor__list--occupy"
-                }
-              >
-                <div className="threshold-editor__row">
-                  <div
-                    className={
-                      isallday
-                        ? "threshold-editor__col-10"
-                        : "threshold-editor__col-5"
-                    }
-                  >
-                    <select
-                      onchange={e =>
-                        parentState.fromChange(this.model, e.target.value)
-                      }
-                    >
-                      {_.range(24).map((o, i) => {
-                        let hours =
-                          i.toString().length >= 2 ? i.toString() : "0" + i;
-                        let t = "00:00".replace(/00/, hours);
-                        return (
-                          <option
-                            value={hours}
-                            {...{ selected: this.model.getFrom() === hours }}
-                          >
-                            {t}
-                          </option>
-                        );
-                      })}
-                      <option
-                        value=""
-                        {...{ selected: this.model.getFrom() === "" }}
-                      >
-                        all day
-                      </option>
-                    </select>
-                  </div>
-                  {isallday ? (
-                    ""
-                  ) : (
-                    <div className="threshold-editor__col-5">
-                      <select
-                        onchange={e =>
-                          parentState.toChange(this.model, e.target.value)
-                        }
-                      >
-                        {_.range(24).map((o, i) => {
-                          let hours =
-                            i.toString().length >= 2 ? i.toString() : "0" + i;
-                          let t = "00:00".replace(/00/, hours);
-                          return (
-                            <option
-                              value={hours}
-                              selected={this.model.getTo() === hours}
-                            >
-                              {t}
-                            </option>
-                          );
-                        })}
-                        <option value="" selected={this.model.getTo() === ""}>
-                          all day
-                        </option>
-                      </select>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="threshold-editor__col-2">
-              <b>when the ErrorSystem</b>
-            </div>
-            <div className="threshold-editor__col-1">
-              <select>
-                <option value="value">value</option>
-                <option value="delta">delta</option>
-              </select>
-            </div>
-            <div className="threshold-editor__col-2">
-              <select>
-                {[
-                  [">", "is greater than (>)"],
-                  ["<", "is less than (<)"],
-                  ["=", "is equa l to (=)"]
-                ].map(([value, text]) => {
-                  return (
-                    <option
-                      value={value}
-                      selected={value === this.model.get("operator")}
-                    >
-                      {text}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-            <div className="threshold-editor__col-3 ">
-              {inputList.map((o, i) => {
-                return (
-                  <div className="threshold-editor__threshold-container">
-                    <div className="threshold-editor__threshold__value">
-                      <input
-                        type="number"
-                        value={inputList[i]}
-                        onchange={({ target: { value } }) =>
-                          parentState.thresholdChange(this.model, i, value)
-                        }
-                      />
-                    </div>
-                    <div className="threshold-editor__threshold__tip">
-                      <span className={tips[i].className}>
-                        {tips[i].text}
-                        <i />
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <Time
+              {...{
+                state,
+                parentState,
+                model: this.model,
+                components: parentState.components,
+                instanceName: "component-time-" + this.cid
+              }}
+            />
+            <Comparison
+              {...{
+                state,
+                parentState,
+                model: this.model,
+                components: parentState.components,
+                instanceName: "component-comparison-" + this.cid
+              }}
+            />
+            <Alert
+              {...{
+                state,
+                parentState,
+                model: this.model,
+                components: parentState.components,
+                instanceName: "component-alert-" + this.cid
+              }}
+            />
           </div>
         </div>
         {state.selected ? (

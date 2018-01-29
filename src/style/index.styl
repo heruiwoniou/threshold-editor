@@ -41,6 +41,10 @@
     }
   }
 
+  .threshold-editor__body {
+    position: relative;
+  }
+
   .threshold-editor__header {
     line-height: 21px;
     margin-left: 10px;
@@ -77,14 +81,12 @@
     margin-left: 10px;
     position: relative;
 
-    &>div {
+    div.threshold-editor__list--padding {
       padding: 0 11px;
       textEllipsis();
     }
 
     .threshold-editor__list--occupy-container {
-      padding: 0;
-
       .threshold-editor__list--occupy {
         background: white;
         position: absolute;
@@ -161,7 +163,7 @@
       bottom: 1px;
 
       for key, value in colors {
-        &.threshold-editor__color-tab--{key} {
+        &.{key} {
           background: value;
         }
       }
@@ -257,6 +259,60 @@
       bottom: 0px;
       width: 0;
       border-right: 1px dotted #ccc;
+    }
+  }
+
+  .threshold-editor__timeline {
+    margin-top: 24px;
+    height: 54px;
+    position: relative;
+
+    .threshold-editor__time-panel {
+      font-size: 0;
+
+      span {
+        display: inline-block;
+        line-height: 1;
+        vertical-align: top;
+        width: unit((100 / 12), '%');
+        font-size: 9px;
+        color: #777777;
+        text-align: right;
+
+        &:after {
+          position: absolute;
+          top: 0px;
+          bottom: 0px;
+          content: '';
+          width: 1px;
+          background: #ccc;
+        }
+      }
+    }
+
+    .threshold-editor__timebar-container {
+      position: absolute;
+      top: 14px;
+      width: 100%;
+
+      .threshold-editor__timebar {
+        position: absolute;
+        height: 34px;
+        top: 0;
+        border: 1px solid #ffffff;
+
+        &.is-allday {
+          height: 16px;
+          top: 9px;
+          border: 1px solid #cccccc;
+        }
+
+        for key, value in colors {
+          &.{key} {
+            background: value;
+          }
+        }
+      }
     }
   }
 }

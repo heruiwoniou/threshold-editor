@@ -65,6 +65,9 @@
 .threshold-editor .threshold-editor__col-10 {
   width: 100%;
 }
+.threshold-editor .threshold-editor__body {
+  position: relative;
+}
 .threshold-editor .threshold-editor__header {
   line-height: 21px;
   margin-left: 10px;
@@ -98,14 +101,11 @@
   margin-left: 10px;
   position: relative;
 }
-.threshold-editor .threshold-editor__list>div {
+.threshold-editor .threshold-editor__list div.threshold-editor__list--padding {
   padding: 0 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-}
-.threshold-editor .threshold-editor__list .threshold-editor__list--occupy-container {
-  padding: 0;
 }
 .threshold-editor .threshold-editor__list .threshold-editor__list--occupy-container .threshold-editor__list--occupy {
   background: #fff;
@@ -189,22 +189,22 @@
   top: 1px;
   bottom: 1px;
 }
-.threshold-editor .threshold-editor__single-rules .threshold-editor__color-tab.threshold-editor__color-tab--purple {
+.threshold-editor .threshold-editor__single-rules .threshold-editor__color-tab.purple {
   background: #5f2f69;
 }
-.threshold-editor .threshold-editor__single-rules .threshold-editor__color-tab.threshold-editor__color-tab--light-blue {
+.threshold-editor .threshold-editor__single-rules .threshold-editor__color-tab.light-blue {
   background: #009edf;
 }
-.threshold-editor .threshold-editor__single-rules .threshold-editor__color-tab.threshold-editor__color-tab--green {
+.threshold-editor .threshold-editor__single-rules .threshold-editor__color-tab.green {
   background: #9cc416;
 }
-.threshold-editor .threshold-editor__single-rules .threshold-editor__color-tab.threshold-editor__color-tab--blue {
+.threshold-editor .threshold-editor__single-rules .threshold-editor__color-tab.blue {
   background: #0049a0;
 }
-.threshold-editor .threshold-editor__single-rules .threshold-editor__color-tab.threshold-editor__color-tab--magenta {
+.threshold-editor .threshold-editor__single-rules .threshold-editor__color-tab.magenta {
   background: #9e156d;
 }
-.threshold-editor .threshold-editor__single-rules .threshold-editor__color-tab.threshold-editor__color-tab--bright-green {
+.threshold-editor .threshold-editor__single-rules .threshold-editor__color-tab.bright-green {
   background: #10b50c;
 }
 .threshold-editor .threshold-editor__single-rules:hover {
@@ -283,6 +283,65 @@
   bottom: 0px;
   width: 0;
   border-right: 1px dotted #ccc;
+}
+.threshold-editor .threshold-editor__timeline {
+  margin-top: 24px;
+  height: 54px;
+  position: relative;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__time-panel {
+  font-size: 0;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__time-panel span {
+  display: inline-block;
+  line-height: 1;
+  vertical-align: top;
+  width: 8.333333333333334%;
+  font-size: 9px;
+  color: #777;
+  text-align: right;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__time-panel span:after {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  content: '';
+  width: 1px;
+  background: #ccc;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container {
+  position: absolute;
+  top: 14px;
+  width: 100%;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar {
+  position: absolute;
+  height: 34px;
+  top: 0;
+  border: 1px solid #fff;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar.is-allday {
+  height: 16px;
+  top: 9px;
+  border: 1px solid #ccc;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar.purple {
+  background: #5f2f69;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar.light-blue {
+  background: #009edf;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar.green {
+  background: #9cc416;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar.blue {
+  background: #0049a0;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar.magenta {
+  background: #9e156d;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar.bright-green {
+  background: #10b50c;
 }
 /*# sourceMappingURL=src/style/index.css.map */
 /*# sourceMappingURL=bundle.css.map */

@@ -8,14 +8,12 @@ export const analysis = function(str) {
   let times = time.split(" ");
   let operator = mathes[2] || mathes[5];
   let threshold = mathes[3] || mathes[6];
-  let instance = new Threshold({
+  return new Threshold({
     from: times.length == 2 ? times[0] : "",
     to: times.length == 2 ? times[1] : "",
     operator,
     threshold
   });
-  window[instance.cid] = instance;
-  return instance;
 };
 const Threshold = Model.extend({
   defaults: {
@@ -66,6 +64,9 @@ const Threshold = Model.extend({
     });
     res[2] = val;
     this.set("threshold", res.join(" "));
+  },
+  isallday() {
+    return this.getFrom() === "" && this.getTo() === "";
   }
 });
 
