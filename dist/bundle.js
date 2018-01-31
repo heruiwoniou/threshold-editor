@@ -2509,7 +2509,7 @@ var TimeLineConstructor = ViewModel.extend({
     }).forEach(function (model, i) {
       list[_this.collection.length - 1 - i] = model;
     });
-    return h_1('div', { className: "threshold-editor__timeline" }, [h_1('div', { className: "threshold-editor__time-panel" }, [_.range(12).map(function (hours) {
+    return h_1('div', { className: "threshold-editor__timeline", style: { display: list.length == 0 ? 'none' : 'block' } }, [h_1('div', { className: "threshold-editor__time-panel" }, [_.range(12).map(function (hours) {
       return h_1('span', null, [2 + hours * 2 + ":00", "  "]);
     })]), h_1('div', { className: "threshold-editor__timebar-container" }, [_.map(list, function (model, i) {
       var isallday = model.isallday();

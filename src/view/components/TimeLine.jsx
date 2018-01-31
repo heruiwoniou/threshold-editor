@@ -20,7 +20,7 @@ const TimeLineConstructor = ViewModel.extend({
         list[this.collection.length - 1 - i] = model;
       });
     return (
-      <div className="threshold-editor__timeline">
+      <div className="threshold-editor__timeline" style={{ display: list.length == 0 ? 'none' : 'block' }}>
         <div className="threshold-editor__time-panel">
           {_.range(12).map(hours => {
             return <span>{2 + hours * 2 + ":00"} &nbsp;</span>;
