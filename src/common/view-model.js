@@ -12,7 +12,7 @@ let ViewModel = View.extend({
   timer: null,
   components: {},
   // virtual render,
-  tpl() {},
+  tpl() { },
   initializeRender() {
     this.tree = this.tpl(this);
     this.treeNode = createElement(this.tree);

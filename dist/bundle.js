@@ -2346,10 +2346,8 @@ var TimeConstructor = ViewModel.extend({
     }, [_.range(24).map(function (o, i) {
       var hours = i.toString().length >= 2 ? i.toString() : "0" + i;
       var t = "00:00".replace(/00/, hours);
-      return h_1('option', Object.assign({
-        value: hours }, { selected: _this.model.getFrom() === hours }), [t]);
-    }), h_1('option', Object.assign({
-      value: "" }, { selected: this.model.getFrom() === "" }), ["all day"])])]), isallday ? "" : h_1('div', { className: "threshold-editor__col-5 threshold-editor__list--padding" }, [h_1('select', {
+      return h_1('option', { value: hours }, [" ", t, " "]);
+    }), h_1('option', { value: "" }, [" all day "])])]), isallday ? "" : h_1('div', { className: "threshold-editor__col-5 threshold-editor__list--padding" }, [h_1('select', {
       onchange: function onchange(e) {
         return parentState.toChange(_this.model, e.target.value);
       }
@@ -2357,10 +2355,7 @@ var TimeConstructor = ViewModel.extend({
     }, [_.range(24).map(function (o, i) {
       var hours = i.toString().length >= 2 ? i.toString() : "0" + i;
       var t = "00:00".replace(/00/, hours);
-      return h_1('option', {
-        value: hours,
-        selected: _this.model.getTo() === hours
-      }, [t]);
+      return h_1('option', { value: hours }, [" ", t, " "]);
     })])])])])])]);
   }
 });
@@ -2506,7 +2501,6 @@ var TimeLineConstructor = ViewModel.extend({
   tpl: function tpl(props, state, parentState) {
     var _this = this;
 
-    var self = this;
     var list = [];
     this.collection.sortBy(function (model) {
       var start = model.getFrom();
@@ -2521,39 +2515,23 @@ var TimeLineConstructor = ViewModel.extend({
       var isallday = model.isallday();
       var from = ~~model.getFrom() * 100 / 24 + "%";
       var to = (24 - ~~model.getTo()) * 100 / 24 + "%";
+      var editing = model.get("editing");
+      var zIndex = editing ? list.length : i;
       var barStyle = isallday ? { width: "100%" } : {
         left: from,
         right: to
       };
-      barStyle.zIndex = model.get("editing") ? list.length : i;
+      barStyle.zIndex = zIndex;
       if (model.getIsAcrossTheDay()) {
-        return h_1('div', { className: "threshold-editor__timebar is-across-the-day " + colors[list.length - 1 - i]
-        }, [h_1('div', { className: "threshold-editor__timebar__child", style: { left: 0, right: to } }), h_1('div', { className: "threshold-editor__timebar__child", style: { right: 0, left: from } })]);
+        return h_1('div', { className: "threshold-editor__timebar is-across-the-day " + colors[list.length - 1 - i] + (editing ? " is-editing" : ""),
+          style: { zIndex: zIndex } }, [h_1('div', { className: "threshold-editor__timebar__child", style: { left: 0, right: to } }), h_1('div', { className: "threshold-editor__timebar__child", style: { right: 0, left: from } })]);
       } else {
         return h_1('div', {
-          className: "threshold-editor__timebar " + colors[list.length - 1 - i] + (isallday ? " is-allday" : ""),
+          className: "threshold-editor__timebar " + colors[list.length - 1 - i] + (isallday ? " is-allday" : "") + (editing ? " is-editing" : ""),
 
-          style: barStyle,
-          onmousedown: function onmousedown(e) {
-            self.mousedown(e, this, i, list.length + 1);
-          } });
+          style: barStyle });
       }
     })])]);
-  },
-  mousedown: function mousedown(e, el, oldVal, newVal) {
-    if (e.which == 1) {
-      el.style.zIndex = newVal;
-      var onselectstart = document.onselectstart;
-      document.onselectstart = function () {
-        return false;
-      };
-      var onmouseup = function onmouseup() {
-        el.style.zIndex = oldVal;
-        document.removeEventListener("mouseup", onmouseup);
-        document.onselectstart = onselectstart;
-      };
-      document.addEventListener("mouseup", onmouseup);
-    }
   }
 });
 

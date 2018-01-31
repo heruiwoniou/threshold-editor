@@ -36,21 +36,9 @@ const TimeConstructor = ViewModel.extend({
                     let hours =
                       i.toString().length >= 2 ? i.toString() : "0" + i;
                     let t = "00:00".replace(/00/, hours);
-                    return (
-                      <option
-                        value={hours}
-                        {...{ selected: this.model.getFrom() === hours }}
-                      >
-                        {t}
-                      </option>
-                    );
+                    return (<option value={hours} > {t} </option>);
                   })}
-                  <option
-                    value=""
-                    {...{ selected: this.model.getFrom() === "" }}
-                  >
-                    all day
-                  </option>
+                  <option value=""> all day </option>
                 </select>
               </div>
               {isallday ? (
@@ -66,14 +54,7 @@ const TimeConstructor = ViewModel.extend({
                         let hours =
                           i.toString().length >= 2 ? i.toString() : "0" + i;
                         let t = "00:00".replace(/00/, hours);
-                        return (
-                          <option
-                            value={hours}
-                            selected={this.model.getTo() === hours}
-                          >
-                            {t}
-                          </option>
-                        );
+                        return (<option value={hours} > {t} </option>);
                       })}
                     </select>
                   </div>

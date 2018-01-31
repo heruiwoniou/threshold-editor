@@ -310,6 +310,11 @@
         for key, value in colors {
           &.{key} {
             background: value;
+
+            &.is-editing {
+              border-color: value;
+              box-shadow: 0 0 8px value - 20%;
+            }
           }
         }
 
@@ -317,16 +322,30 @@
           position: absolute;
           height: 34px;
           top: 0;
+          border: 1px solid #ffffff;
         }
 
         &.is-across-the-day {
           border: none;
           background: none !important;
-          width: 100%;
+          left: -1px;
+          right: -1px;
 
           for key, value in colors {
-            &.{key} .threshold-editor__timebar__child {
-              background: value;
+            &.{key} {
+              &.is-editing {
+                border-color: none;
+                box-shadow: none;
+              }
+
+              .threshold-editor__timebar__child {
+                background: value;
+              }
+
+              &.is-editing .threshold-editor__timebar__child {
+                border-color: value;
+                box-shadow: 0 0 8px value - 20%;
+              }
             }
           }
         }
