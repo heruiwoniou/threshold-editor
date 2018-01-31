@@ -4,23 +4,17 @@ import createElement from "virtual-dom/create-element";
 import ViewModel from "./../common/view-model";
 
 import Threshold from "./../model/threshold";
-import EditorRow from "./components/EditorRow.jsx";
+import EditorRow from "./components/EditorRow";
 import TimeLine from "./components/TimeLine.jsx";
 
-const State = Model.extend({
-  defaults: {
-    selectIndex: -1,
-    globalClickCancel: false
-  }
-});
-
+let globalClickCancel = false;
 const Editor = ViewModel.extend({
   initialize() {
     $(document).on("click", e => {
-      if (!this.globalClickCancel) {
-        this.model.set("selectIndex", -1);
+      if (!globalClickCancel) {
+        this.collection.forEach(model => model.set("editing", false));
       }
-      this.globalClickCancel = false;
+      globalClickCancel = false;
     });
     this.listenTo(this.model, "change", this.render);
     this.listenTo(this.collection, "add remove change", this.render);
@@ -57,22 +51,28 @@ const Editor = ViewModel.extend({
             </div>
           </div>
           <div className="threshold-editor__content">
-            {this.collection.map((model, i) => {
-              return (
-                <EditorRow
-                  {...{
-                    state: {
-                      index: i,
-                      selected: this.model.get("selectIndex", i) == i
-                    },
-                    parentState: this,
-                    model,
-                    components: this.components,
-                    instanceName: "component-editor-row" + model.cid
-                  }}
-                />
-              );
-            })}
+            {this.collection
+              .sortBy(model => {
+                let start = model.getFrom();
+                start = start === "" ? 24 : ~~start;
+                return start;
+              })
+              .map((model, i) => {
+                return (
+                  <EditorRow
+                    {...{
+                      state: {
+                        index: i,
+                        selected: model.get("editing")
+                      },
+                      parentState: this,
+                      model,
+                      components: this.components,
+                      instanceName: "component-editor-row" + model.cid
+                    }}
+                  />
+                );
+              })}
           </div>
         </div>
         <TimeLine
@@ -86,9 +86,12 @@ const Editor = ViewModel.extend({
       </div>
     );
   },
-  itemClick(i) {
-    this.globalClickCancel = true;
-    this.model.set("selectIndex", i);
+  itemClick(model) {
+    globalClickCancel = true;
+    model.set("editing", true);
+    this.collection
+      .filter(o => o.cid !== model.cid)
+      .forEach(model => model.set("editing", false));
   },
   addNewItem() {
     this.collection.add(new Threshold());
@@ -126,7 +129,6 @@ const Editor = ViewModel.extend({
   }
 });
 
-export default function(option, ...args) {
-  option.model = new State();
-  return new Editor(option, ...args);
+export default function(...args) {
+  return new Editor(...args);
 }

@@ -9,6 +9,7 @@ let ViewModel = View.extend({
   tree: null,
   // real dom
   treeNode: null,
+  timer: null,
   components: {},
   // virtual render,
   tpl() {},
@@ -18,10 +19,13 @@ let ViewModel = View.extend({
     return this.updateRender;
   },
   updateRender() {
-    let newTree = this.tpl(this);
-    var patches = diff(this.tree, newTree);
-    this.treeNode = patch(this.treeNode, patches);
-    this.tree = newTree;
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => {
+      let newTree = this.tpl(this);
+      var patches = diff(this.tree, newTree);
+      this.treeNode = patch(this.treeNode, patches);
+      this.tree = newTree;
+    }, 0);
   },
   triggerRender() {
     this.triggerRender = this.initializeRender();

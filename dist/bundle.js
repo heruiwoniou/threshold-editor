@@ -2107,6 +2107,7 @@ var ViewModel = backbone.View.extend({
   tree: null,
   // real dom
   treeNode: null,
+  timer: null,
   components: {},
   // virtual render,
   tpl: function tpl() {},
@@ -2116,10 +2117,15 @@ var ViewModel = backbone.View.extend({
     return this.updateRender;
   },
   updateRender: function updateRender() {
-    var newTree = this.tpl(this);
-    var patches = diff_1$2(this.tree, newTree);
-    this.treeNode = patch_1$2(this.treeNode, patches);
-    this.tree = newTree;
+    var _this = this;
+
+    clearTimeout(this.timer);
+    this.timer = setTimeout(function () {
+      var newTree = _this.tpl(_this);
+      var patches = diff_1$2(_this.tree, newTree);
+      _this.treeNode = patch_1$2(_this.treeNode, patches);
+      _this.tree = newTree;
+    }, 0);
   },
   triggerRender: function triggerRender() {
     this.triggerRender = this.initializeRender();
@@ -2150,7 +2156,8 @@ var Threshold = backbone.Model.extend({
     from: "",
     to: "",
     operator: ">",
-    threshold: ""
+    threshold: "",
+    editing: false
   },
   getFrom: function getFrom() {
     return this.get("from").split(":")[0];
@@ -2366,7 +2373,7 @@ var EditorRowConstructor = ViewModel.extend({
     }, [h_1('div', {
       className: "threshold-editor__trigger--itemclick",
       onclick: function onclick() {
-        return parentState.itemClick(state.index);
+        return parentState.itemClick(_this.model);
       }
     }, [h_1('span', {
       className: "threshold-editor__color-tab " + colors[state.index % colors.length]
@@ -2397,47 +2404,70 @@ var EditorRowConstructor = ViewModel.extend({
   }
 });
 
-var EditorRow = Component(EditorRowConstructor);
+var Row = Component(EditorRowConstructor);
 
 var TimeLineConstructor = ViewModel.extend({
   tpl: function tpl(props, state, parentState) {
     var _this = this;
 
+    var self = this;
+    var list = [];
+    this.collection.sortBy(function (model) {
+      var start = model.getFrom();
+      start = start === "" ? 24 : ~~start;
+      return start;
+    }).forEach(function (model, i) {
+      list[_this.collection.length - 1 - i] = model;
+    });
     return h_1('div', { className: "threshold-editor__timeline" }, [h_1('div', { className: "threshold-editor__time-panel" }, [_.range(12).map(function (hours) {
       return h_1('span', null, [2 + hours * 2 + ":00", "  "]);
-    })]), h_1('div', { className: "threshold-editor__timebar-container" }, [this.collection.map(function (model, i) {
+    })]), h_1('div', { className: "threshold-editor__timebar-container" }, [_.map(list, function (model, i) {
       var isallday = model.isallday();
       var barStyle = isallday ? { width: "100%" } : {
         left: ~~model.getFrom() * 100 / 24 + "%",
         right: (24 - ~~model.getTo()) * 100 / 24 + "%"
       };
-      barStyle.zIndex = _this.collection.length - i;
+      barStyle.zIndex = model.get("editing") ? list.length : i;
       return h_1('div', {
-        className: "threshold-editor__timebar " + colors[i] + (isallday ? " is-allday" : ""),
+        className: "threshold-editor__timebar " + colors[list.length - 1 - i] + (isallday ? " is-allday" : ""),
 
-        style: barStyle });
+        style: barStyle,
+        onmousedown: function onmousedown(e) {
+          self.mousedown(e, this, i, list.length + 1);
+        } });
     })])]);
+  },
+  mousedown: function mousedown(e, el, oldVal, newVal) {
+    if (e.which == 1) {
+      el.style.zIndex = newVal;
+      var onselectstart = document.onselectstart;
+      document.onselectstart = function () {
+        return false;
+      };
+      var onmouseup = function onmouseup() {
+        el.style.zIndex = oldVal;
+        document.removeEventListener("mouseup", onmouseup);
+        document.onselectstart = onselectstart;
+      };
+      document.addEventListener("mouseup", onmouseup);
+    }
   }
 });
 
 var TimeLine = Component(TimeLineConstructor);
 
-var State = backbone.Model.extend({
-  defaults: {
-    selectIndex: -1,
-    globalClickCancel: false
-  }
-});
-
+var globalClickCancel = false;
 var Editor = ViewModel.extend({
   initialize: function initialize() {
     var _this = this;
 
     $(document).on("click", function (e) {
-      if (!_this.globalClickCancel) {
-        _this.model.set("selectIndex", -1);
+      if (!globalClickCancel) {
+        _this.collection.forEach(function (model) {
+          return model.set("editing", false);
+        });
       }
-      _this.globalClickCancel = false;
+      globalClickCancel = false;
     });
     this.listenTo(this.model, "change", this.render);
     this.listenTo(this.collection, "add remove change", this.render);
@@ -2452,11 +2482,15 @@ var Editor = ViewModel.extend({
       onclick: function onclick() {
         return _this2.addNewItem();
       }
-    }, ["add a new threshold (+)"])])]), h_1('div', { className: "threshold-editor__content" }, [this.collection.map(function (model, i) {
-      return EditorRow(Object.assign({}, {
+    }, ["add a new threshold (+)"])])]), h_1('div', { className: "threshold-editor__content" }, [this.collection.sortBy(function (model) {
+      var start = model.getFrom();
+      start = start === "" ? 24 : ~~start;
+      return start;
+    }).map(function (model, i) {
+      return Row(Object.assign({}, {
         state: {
           index: i,
-          selected: _this2.model.get("selectIndex", i) == i
+          selected: model.get("editing")
         },
         parentState: _this2,
         model: model,
@@ -2470,9 +2504,14 @@ var Editor = ViewModel.extend({
       instanceName: "component-time-line" + this.cid
     }))]);
   },
-  itemClick: function itemClick(i) {
-    this.globalClickCancel = true;
-    this.model.set("selectIndex", i);
+  itemClick: function itemClick(model) {
+    globalClickCancel = true;
+    model.set("editing", true);
+    this.collection.filter(function (o) {
+      return o.cid !== model.cid;
+    }).forEach(function (model) {
+      return model.set("editing", false);
+    });
   },
   addNewItem: function addNewItem() {
     this.collection.add(new Threshold());
@@ -2510,14 +2549,12 @@ var Editor = ViewModel.extend({
   }
 });
 
-function Editor$1 (option) {
-  option.model = new State();
-
-  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-    args[_key - 1] = arguments[_key];
+function Editor$1 () {
+  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
   }
 
-  return new (Function.prototype.bind.apply(Editor, [null].concat([option], args)))();
+  return new (Function.prototype.bind.apply(Editor, [null].concat(args)))();
 }
 
 var Thresholds = backbone.Collection.extend({

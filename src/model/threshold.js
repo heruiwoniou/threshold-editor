@@ -20,7 +20,8 @@ const Threshold = Model.extend({
     from: "",
     to: "",
     operator: ">",
-    threshold: ""
+    threshold: "",
+    editing: false
   },
   getFrom() {
     return this.get("from").split(":")[0];

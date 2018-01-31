@@ -1,7 +1,7 @@
 import { Model } from "backbone";
 import h from "virtual-dom/h";
-import ViewModel from "./../../common/view-model";
-import Component from "./../../common/component";
+import ViewModel from "./../../../common/view-model";
+import Component from "./../../../common/component";
 import _ from "underscore";
 
 const TimeConstructor = ViewModel.extend({

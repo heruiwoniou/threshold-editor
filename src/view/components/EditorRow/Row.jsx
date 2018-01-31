@@ -1,13 +1,13 @@
 import { Model } from "backbone";
 import h from "virtual-dom/h";
-import ViewModel from "./../../common/view-model";
-import Component from "./../../common/component";
+import ViewModel from "./../../../common/view-model";
+import Component from "./../../../common/component";
 import _ from "underscore";
 
-import { colors } from './../utils/colors'
-import Time from "./Time.jsx";
-import Comparison from "./Comparison.jsx";
-import Alert from "./Alert.jsx";
+import { colors } from "./../../utils/colors";
+import Time from "./RowTime.jsx";
+import Comparison from "./RowComparison.jsx";
+import Alert from "./RowAlert.jsx";
 
 const EditorRowConstructor = ViewModel.extend({
   tpl(props, state, parentState) {
@@ -21,7 +21,7 @@ const EditorRowConstructor = ViewModel.extend({
       >
         <div
           className="threshold-editor__trigger--itemclick"
-          onclick={() => parentState.itemClick(state.index)}
+          onclick={() => parentState.itemClick(this.model)}
         >
           <span
             className={
