@@ -2,6 +2,7 @@ import { Model } from "backbone";
 import h from "virtual-dom/h";
 import ViewModel from "./../../../common/view-model";
 import Component from "./../../../common/component";
+import { AsyncValHook } from './../../utils/hook';
 import _ from "underscore";
 
 const TimeConstructor = ViewModel.extend({
@@ -26,8 +27,9 @@ const TimeConstructor = ViewModel.extend({
                 }
               >
                 <select
+                  value={AsyncValHook(this.model.getFrom())}
                   onchange={e =>
-                    parentState.fromChange(this.model, e.target.value)
+                    parentState.fromChange(this.model, this.model.getFrom(), e.target.value)
                   }
                 >
                   {_.range(24).map((o, i) => {
@@ -54,28 +56,28 @@ const TimeConstructor = ViewModel.extend({
               {isallday ? (
                 ""
               ) : (
-                <div className="threshold-editor__col-5 threshold-editor__list--padding">
-                  <select
-                    onchange={e =>
-                      parentState.toChange(this.model, e.target.value)
-                    }
-                  >
-                    {_.range(24).map((o, i) => {
-                      let hours =
-                        i.toString().length >= 2 ? i.toString() : "0" + i;
-                      let t = "00:00".replace(/00/, hours);
-                      return (
-                        <option
-                          value={hours}
-                          selected={this.model.getTo() === hours}
-                        >
-                          {t}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-              )}
+                  <div className="threshold-editor__col-5 threshold-editor__list--padding">
+                    <select
+                      onchange={e =>
+                        parentState.toChange(this.model, e.target.value)
+                      }
+                    >
+                      {_.range(24).map((o, i) => {
+                        let hours =
+                          i.toString().length >= 2 ? i.toString() : "0" + i;
+                        let t = "00:00".replace(/00/, hours);
+                        return (
+                          <option
+                            value={hours}
+                            selected={this.model.getTo() === hours}
+                          >
+                            {t}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                )}
             </div>
           </div>
         </div>

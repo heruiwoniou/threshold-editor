@@ -343,5 +343,33 @@
 .threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar.bright-green {
   background: #10b50c;
 }
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar .threshold-editor__timebar__child {
+  position: absolute;
+  height: 34px;
+  top: 0;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar.is-across-the-day {
+  border: none;
+  background: none !important;
+  width: 100%;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar.is-across-the-day.purple .threshold-editor__timebar__child {
+  background: #5f2f69;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar.is-across-the-day.light-blue .threshold-editor__timebar__child {
+  background: #009edf;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar.is-across-the-day.green .threshold-editor__timebar__child {
+  background: #9cc416;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar.is-across-the-day.blue .threshold-editor__timebar__child {
+  background: #0049a0;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar.is-across-the-day.magenta .threshold-editor__timebar__child {
+  background: #9e156d;
+}
+.threshold-editor .threshold-editor__timeline .threshold-editor__timebar-container .threshold-editor__timebar.is-across-the-day.bright-green .threshold-editor__timebar__child {
+  background: #10b50c;
+}
 /*# sourceMappingURL=src/style/index.css.map */
 /*# sourceMappingURL=bundle.css.map */

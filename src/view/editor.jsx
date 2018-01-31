@@ -97,18 +97,28 @@ const Editor = ViewModel.extend({
     this.collection.add(new Threshold());
   },
   removeItem(model, index) {
-    if (this.model.get("selectIndex") == index) {
-      this.model.set("selectIndex", -1);
-    }
+    globalClickCancel = true;
     this.collection.remove(model);
+    if (index < this.collection.length) {
+      this.collection.models[index].set("editing", true)
+    }
   },
-  fromChange(model, value) {
-    if (value === "") {
-      model.set("from", "");
-      model.set("to", "");
+  fromChange(model, oldVal, newVal) {
+    if (newVal === "") {
+      model.set({
+        from: "",
+        to: ""
+      });
     } else {
-      model.set("from", value === "" ? "" : value + ":00");
-      if (model.get("to") == "") model.set("to", "00:00");
+      model.set(oldVal === ""
+        ? {
+          from: newVal + ':00',
+          to: "00:00"
+        }
+        : {
+          from: newVal + ':00'
+        }
+      )
     }
   },
   toChange(model, value) {
@@ -129,6 +139,6 @@ const Editor = ViewModel.extend({
   }
 });
 
-export default function(...args) {
+export default function (...args) {
   return new Editor(...args);
 }

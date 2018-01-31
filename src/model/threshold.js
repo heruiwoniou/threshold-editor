@@ -2,7 +2,7 @@ import { Model } from "backbone";
 import _ from "underscore";
 const regex = /^([\d\.]*)\s*([\d\.]*)\s*([\d\.]*)$/;
 const rules = /\((\d{2}:\d{2}\s*\d{2}:\d{2})\)\s*([><=])\s*(\d*\s*\d*\s*\d*)|(\s*)([><=])\s*(\d*\s*\d*\s*\d*)/;
-export const analysis = function(str) {
+export const analysis = function (str) {
   let mathes = rules.exec(str);
   let time = mathes[1] || mathes[4];
   let times = time.split(" ");
@@ -22,6 +22,9 @@ const Threshold = Model.extend({
     operator: ">",
     threshold: "",
     editing: false
+  },
+  getIsAcrossTheDay() {
+    return ~~this.get("from").split(":")[0] > ~~this.get("to").split(":")[0]
   },
   getFrom() {
     return this.get("from").split(":")[0];

@@ -2159,6 +2159,9 @@ var Threshold = backbone.Model.extend({
     threshold: "",
     editing: false
   },
+  getIsAcrossTheDay: function getIsAcrossTheDay() {
+    return ~~this.get("from").split(":")[0] > ~~this.get("to").split(":")[0];
+  },
   getFrom: function getFrom() {
     return this.get("from").split(":")[0];
   },
@@ -2231,6 +2234,98 @@ function Component (Constructor) {
 
 var colors = ["purple", "light-blue", "green", "blue", "magenta", "bright-green"];
 
+var callable;
+var byObserver;
+
+callable = function (fn) {
+	if (typeof fn !== 'function') throw new TypeError(fn + " is not a function");
+	return fn;
+};
+
+byObserver = function (Observer) {
+	var node = document.createTextNode(''), queue, currentQueue, i = 0;
+	new Observer(function () {
+		var callback;
+		if (!queue) {
+			if (!currentQueue) return;
+			queue = currentQueue;
+		} else if (currentQueue) {
+			queue = currentQueue.concat(queue);
+		}
+		currentQueue = queue;
+		queue = null;
+		if (typeof currentQueue === 'function') {
+			callback = currentQueue;
+			currentQueue = null;
+			callback();
+			return;
+		}
+		node.data = (i = ++i % 2); // Invoke other batch, to handle leftover callbacks in case of crash
+		while (currentQueue) {
+			callback = currentQueue.shift();
+			if (!currentQueue.length) currentQueue = null;
+			callback();
+		}
+	}).observe(node, { characterData: true });
+	return function (fn) {
+		callable(fn);
+		if (queue) {
+			if (typeof queue === 'function') queue = [queue, fn];
+			else queue.push(fn);
+			return;
+		}
+		queue = fn;
+		node.data = (i = ++i % 2);
+	};
+};
+
+var nextTick = (function () {
+	// Node.js
+	if ((typeof process === 'object') && process && (typeof process.nextTick === 'function')) {
+		return process.nextTick;
+	}
+
+	// MutationObserver
+	if ((typeof document === 'object') && document) {
+		if (typeof MutationObserver === 'function') return byObserver(MutationObserver);
+		if (typeof WebKitMutationObserver === 'function') return byObserver(WebKitMutationObserver);
+	}
+
+	// W3C Draft
+	// http://dvcs.w3.org/hg/webperf/raw-file/tip/specs/setImmediate/Overview.html
+	if (typeof setImmediate === 'function') {
+		return function (cb) { setImmediate(callable(cb)); };
+	}
+
+	// Wide available standard
+	if ((typeof setTimeout === 'function') || (typeof setTimeout === 'object')) {
+		return function (cb) { setTimeout(callable(cb), 0); };
+	}
+
+	return null;
+}());
+
+function AsyncValHook(value) {
+  if (!(this instanceof AsyncValHook)) {
+    return new AsyncValHook(value);
+  }
+  this.value = value;
+}
+
+AsyncValHook.prototype.hook = function (node) {
+  var _this = this;
+
+  nextTick(function () {
+    node.value = _this.value;
+  });
+};
+
+AsyncValHook.prototype.unhook = function (node) {
+  node.value = "";
+};
+
+AsyncValHook.prototype.type = 'AsyncValHook';
+
 var TimeConstructor = ViewModel.extend({
   tpl: function tpl(props, state, parentState) {
     var _this = this;
@@ -2243,8 +2338,9 @@ var TimeConstructor = ViewModel.extend({
       className: isallday ? "threshold-editor__col-10 threshold-editor__list--padding" : "threshold-editor__col-5 threshold-editor__list--padding"
 
     }, [h_1('select', {
+      value: AsyncValHook(this.model.getFrom()),
       onchange: function onchange(e) {
-        return parentState.fromChange(_this.model, e.target.value);
+        return parentState.fromChange(_this.model, _this.model.getFrom(), e.target.value);
       }
 
     }, [_.range(24).map(function (o, i) {
@@ -2423,18 +2519,25 @@ var TimeLineConstructor = ViewModel.extend({
       return h_1('span', null, [2 + hours * 2 + ":00", "  "]);
     })]), h_1('div', { className: "threshold-editor__timebar-container" }, [_.map(list, function (model, i) {
       var isallday = model.isallday();
+      var from = ~~model.getFrom() * 100 / 24 + "%";
+      var to = (24 - ~~model.getTo()) * 100 / 24 + "%";
       var barStyle = isallday ? { width: "100%" } : {
-        left: ~~model.getFrom() * 100 / 24 + "%",
-        right: (24 - ~~model.getTo()) * 100 / 24 + "%"
+        left: from,
+        right: to
       };
       barStyle.zIndex = model.get("editing") ? list.length : i;
-      return h_1('div', {
-        className: "threshold-editor__timebar " + colors[list.length - 1 - i] + (isallday ? " is-allday" : ""),
+      if (model.getIsAcrossTheDay()) {
+        return h_1('div', { className: "threshold-editor__timebar is-across-the-day " + colors[list.length - 1 - i]
+        }, [h_1('div', { className: "threshold-editor__timebar__child", style: { left: 0, right: to } }), h_1('div', { className: "threshold-editor__timebar__child", style: { right: 0, left: from } })]);
+      } else {
+        return h_1('div', {
+          className: "threshold-editor__timebar " + colors[list.length - 1 - i] + (isallday ? " is-allday" : ""),
 
-        style: barStyle,
-        onmousedown: function onmousedown(e) {
-          self.mousedown(e, this, i, list.length + 1);
-        } });
+          style: barStyle,
+          onmousedown: function onmousedown(e) {
+            self.mousedown(e, this, i, list.length + 1);
+          } });
+      }
     })])]);
   },
   mousedown: function mousedown(e, el, oldVal, newVal) {
@@ -2517,18 +2620,25 @@ var Editor = ViewModel.extend({
     this.collection.add(new Threshold());
   },
   removeItem: function removeItem(model, index) {
-    if (this.model.get("selectIndex") == index) {
-      this.model.set("selectIndex", -1);
-    }
+    globalClickCancel = true;
     this.collection.remove(model);
+    if (index < this.collection.length) {
+      this.collection.models[index].set("editing", true);
+    }
   },
-  fromChange: function fromChange(model, value) {
-    if (value === "") {
-      model.set("from", "");
-      model.set("to", "");
+  fromChange: function fromChange(model, oldVal, newVal) {
+    if (newVal === "") {
+      model.set({
+        from: "",
+        to: ""
+      });
     } else {
-      model.set("from", value === "" ? "" : value + ":00");
-      if (model.get("to") == "") model.set("to", "00:00");
+      model.set(oldVal === "" ? {
+        from: newVal + ':00',
+        to: "00:00"
+      } : {
+        from: newVal + ':00'
+      });
     }
   },
   toChange: function toChange(model, value) {
@@ -2558,7 +2668,14 @@ function Editor$1 () {
 }
 
 var Thresholds = backbone.Collection.extend({
-  model: Threshold
+  model: Threshold,
+  comparator: function comparator(m1, m2) {
+    var time1 = m1.getFrom();
+    var time2 = m2.getFrom();
+    time1 = time1 === "" ? 24 : ~~time1;
+    time2 = time2 === "" ? 24 : ~~time2;
+    return time1 > time2 ? 1 : 0;
+  }
 });
 
 function index (el) {

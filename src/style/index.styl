@@ -312,6 +312,24 @@
             background: value;
           }
         }
+
+        .threshold-editor__timebar__child {
+          position: absolute;
+          height: 34px;
+          top: 0;
+        }
+
+        &.is-across-the-day {
+          border: none;
+          background: none !important;
+          width: 100%;
+
+          for key, value in colors {
+            &.{key} .threshold-editor__timebar__child {
+              background: value;
+            }
+          }
+        }
       }
     }
   }
