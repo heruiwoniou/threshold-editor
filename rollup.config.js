@@ -5,6 +5,8 @@ import babel from "rollup-plugin-babel";
 import postcss from "rollup-plugin-postcss";
 import autoprefixer from "autoprefixer";
 import url from "postcss-url";
+import cssnano from "cssnano";
+import uglify from "rollup-plugin-uglify";
 
 export default {
   input: "src/index.js",
@@ -21,14 +23,18 @@ export default {
   plugins: [
     postcss({
       extract: true,
-      plugins: [autoprefixer(), url({ url: "inline" })],
-      sourceMap: true
+      plugins: [
+        autoprefixer(),
+        url({ url: "inline" }),
+        cssnano({ preset: "default" })
+      ]
     }),
     resolve(),
     jsx({ factory: "h" }),
     commonjs(),
     babel({
       exclude: "node_modules/**"
-    })
+    }),
+    uglify()
   ]
 };
