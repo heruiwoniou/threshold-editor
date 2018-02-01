@@ -83,6 +83,11 @@ const Editor = ViewModel.extend({
             instanceName: "component-time-line" + this.cid
           }}
         />
+        <div className="threshold-editor__button-group">
+          <a href="javascript:;" onclick={() => this.export()}>
+            save
+          </a>
+        </div>
       </div>
     );
   },
@@ -100,7 +105,7 @@ const Editor = ViewModel.extend({
     globalClickCancel = true;
     this.collection.remove(model);
     if (index < this.collection.length) {
-      this.collection.models[index].set("editing", true)
+      this.collection.models[index].set("editing", true);
     }
   },
   fromChange(model, oldVal, newVal) {
@@ -110,15 +115,16 @@ const Editor = ViewModel.extend({
         to: ""
       });
     } else {
-      model.set(oldVal === ""
-        ? {
-          from: newVal + ':00',
-          to: "00:00"
-        }
-        : {
-          from: newVal + ':00'
-        }
-      )
+      model.set(
+        oldVal === ""
+          ? {
+              from: newVal + ":00",
+              to: "00:00"
+            }
+          : {
+              from: newVal + ":00"
+            }
+      );
     }
   },
   toChange(model, value) {
@@ -136,9 +142,12 @@ const Editor = ViewModel.extend({
         model.setThree(value);
         break;
     }
+  },
+  export() {
+    this.trigger("save", this.collection.export());
   }
 });
 
-export default function (...args) {
+export default function(...args) {
   return new Editor(...args);
 }

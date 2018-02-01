@@ -353,4 +353,32 @@
       }
     }
   }
+
+  .threshold-editor__button-group {
+    margin-top: 50px;
+    text-align: right;
+
+    a {
+      display: inline-block;
+      vertical-align: middle;
+      font-size: 14px;
+      line-height: 1.2;
+      padding: 8px 10px;
+      border: 1px solid color-purple;
+      background: color-purple;
+      border-radius: 5px;
+      color: white;
+      text-decoration: none;
+
+      &:hover {
+        border: 1px solid darken(color-purple, 50%);
+        box-shadow: 0px 0px 5px darken(color-purple, 20%);
+      }
+
+      &:active {
+        box-shadow: 1px 1px 5px darken(color-purple, 40%) inset, 0px 0px 3px darken(color-purple, 20%);
+        padding: 9px 9px 7px 11px;
+      }
+    }
+  }
 }
